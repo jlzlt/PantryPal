@@ -14,6 +14,14 @@ document.addEventListener("DOMContentLoaded", function () {
   ingredientList.addEventListener("click", function (e) {
     if (e.target.classList.contains("add-ingredient")) {
       e.preventDefault();
+
+      // Disable the current input field
+      const currentInput = e.target.previousElementSibling;
+      if (currentInput && currentInput.classList.contains("ingredient-input")) {
+        currentInput.disabled = true;
+        e.target.disabled = true;
+      }
+
       const newField = document.createElement("div");
       newField.className = "input-group mb-2";
       newField.innerHTML = `

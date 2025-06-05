@@ -33,6 +33,29 @@
             <!-- Hidden input to collect all ingredients -->
             <input type="hidden" name="ingredients" id="ingredients-hidden" />
 
+            <!-- Difficulty -->
+            <div class="mb-3">
+              <label for="difficulty" class="form-label">Difficulty</label>
+              <select class="form-select" name="difficulty" id="difficulty">
+                <option value="">Any</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+
+            <!-- Time -->
+            <div class="mb-4">
+              <label for="time" class="form-label">Max Cooking Time</label>
+              <select class="form-select" name="time" id="time">
+                <option value="">No time limit</option>
+                <option value="15">Less than 15 minutes</option>
+                <option value="30">Less than 30 minutes</option>
+                <option value="60">Less than 1 hour</option>
+                <option value="120">Less than 2 hours</option>
+              </select>
+            </div>
+
             <!-- Filters -->
             <div id="filters-list">
               <!-- First 5 filters visible -->
@@ -145,8 +168,21 @@
         <div class="card-body">
           {% if recipes %} {% for recipe in recipes %}
           <div class="mb-4 border-bottom pb-3">
-            <h5>{{ recipe.title }}</h5>
-            <p>{{ recipe.description }}</p>
+            <h5 class="mb-2">{{ recipe.title }}</h5>
+
+            <strong>Ingredients:</strong>
+            <ul>
+              {% for ingredient in recipe.ingredients %}
+              <li>{{ ingredient }}</li>
+              {% endfor %}
+            </ul>
+
+            <strong>Instructions:</strong>
+            <ol>
+              {% for step in recipe.instructions %}
+              <li>{{ step }}</li>
+              {% endfor %}
+            </ol>
           </div>
           {% endfor %} {% else %}
           <p class="text-muted">
