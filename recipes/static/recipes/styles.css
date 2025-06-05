@@ -1,0 +1,7 @@
+.logo-img {
+  height: 5rem;
+}
+
+.navbar .nav-link.active {
+  background-color: #ff7043 !important;
+}

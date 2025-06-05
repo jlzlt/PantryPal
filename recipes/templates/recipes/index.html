@@ -1,20 +1,164 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PantryPal</title>
-  </head>
-  <body>
-    <h1>PantryPal</h1>
-    <form method="post">
-      {% csrf_token %} {{ form.as_p }}
-      <button type="submit">Generate Recipes</button>
-    </form>
+{% extends "recipes/layout.html" %} {% load static %} {% block body %}
 
-    {% if suggestions %}
-    <h2>Recipe Suggestions:</h2>
-    <pre>{{ suggestions }}</pre>
-    {% endif %}
-  </body>
-</html>
+<div class="container-fluid mt-3">
+  <div class="row">
+    <!-- Sidebar (filters) -->
+    <div class="col-lg-4 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Ingredients & Filters</h5>
+        </div>
+        <div class="card-body">
+          <form method="POST" id="ingredient-filter-form">
+            {% csrf_token %}
+
+            <!-- Dynamic ingredient inputs -->
+            <div id="ingredient-list" class="mb-4">
+              <label class="form-label">Enter ingredients:</label>
+              <div class="input-group mb-2">
+                <input
+                  type="text"
+                  class="form-control ingredient-input"
+                  placeholder="e.g. tomato"
+                />
+                <button
+                  type="button"
+                  class="btn btn-outline-primary add-ingredient"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            <!-- Hidden input to collect all ingredients -->
+            <input type="hidden" name="ingredients" id="ingredients-hidden" />
+
+            <!-- Filters -->
+            <div id="filters-list">
+              <!-- First 5 filters visible -->
+              <div class="form-check mb-2">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  name="vegetarian"
+                  id="vegetarian"
+                />
+                <label class="form-check-label" for="vegetarian"
+                  >Vegetarian</label
+                >
+              </div>
+              <div class="form-check mb-2">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  name="quick"
+                  id="quick"
+                />
+                <label class="form-check-label" for="quick"
+                  >Under 30 minutes</label
+                >
+              </div>
+              <div class="form-check mb-2">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  name="gluten_free"
+                  id="gluten_free"
+                />
+                <label class="form-check-label" for="gluten_free"
+                  >Gluten Free</label
+                >
+              </div>
+              <div class="form-check mb-2">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  name="dairy_free"
+                  id="dairy_free"
+                />
+                <label class="form-check-label" for="dairy_free"
+                  >Dairy Free</label
+                >
+              </div>
+              <div class="form-check mb-3">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  name="low_carb"
+                  id="low_carb"
+                />
+                <label class="form-check-label" for="low_carb">Low Carb</label>
+              </div>
+
+              <!-- Hidden remaining filters -->
+              <div id="more-filters" style="display: none">
+                <div class="form-check mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    name="vegan"
+                    id="vegan"
+                  />
+                  <label class="form-check-label" for="vegan">Vegan</label>
+                </div>
+                <div class="form-check mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    name="keto"
+                    id="keto"
+                  />
+                  <label class="form-check-label" for="keto">Keto</label>
+                </div>
+                <div class="form-check mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    name="paleo"
+                    id="paleo"
+                  />
+                  <label class="form-check-label" for="paleo">Paleo</label>
+                </div>
+                <!-- Add more filters here -->
+              </div>
+            </div>
+
+            <!-- Show more / Show less toggle -->
+            <a href="#" id="toggle-filters" class="d-block mb-3"
+              >Show more filters ▼</a
+            >
+
+            <button type="submit" class="btn btn-success w-100">
+              Generate Recipes
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recipe results area -->
+    <div class="col-lg-8">
+      <div class="card shadow">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">Recipe Suggestions</h5>
+        </div>
+        <div class="card-body">
+          {% if recipes %} {% for recipe in recipes %}
+          <div class="mb-4 border-bottom pb-3">
+            <h5>{{ recipe.title }}</h5>
+            <p>{{ recipe.description }}</p>
+          </div>
+          {% endfor %} {% else %}
+          <p class="text-muted">
+            No recipes yet. Submit ingredients to get started!
+          </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block script %}
+<script src="{% static 'recipes/index.js' %}"></script>
+{% endblock %}
