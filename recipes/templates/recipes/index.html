@@ -38,29 +38,6 @@
             <!-- Hidden input to collect all ingredients -->
             <input type="hidden" name="ingredients" id="ingredients-hidden" />
 
-            <!-- Difficulty -->
-            <div class="mb-3">
-              <label for="difficulty" class="form-label">Difficulty</label>
-              <select class="form-select" name="difficulty" id="difficulty">
-                <option value="">Any</option>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-            </div>
-
-            <!-- Time -->
-            <div class="mb-4">
-              <label for="time" class="form-label">Max Cooking Time</label>
-              <select class="form-select" name="time" id="time">
-                <option value="">No time limit</option>
-                <option value="15">Less than 15 minutes</option>
-                <option value="30">Less than 30 minutes</option>
-                <option value="60">Less than 1 hour</option>
-                <option value="120">Less than 2 hours</option>
-              </select>
-            </div>
-
             <!-- Filters -->
             <div id="filters-list">
               <!-- First 5 filters visible -->
@@ -68,11 +45,11 @@
                 <input
                   class="form-check-input"
                   type="checkbox"
-                  name="vegetarian"
-                  id="vegetarian"
+                  name="all_ingredients"
+                  id="all_ingredients"
                 />
-                <label class="form-check-label" for="vegetarian"
-                  >Vegetarian</label
+                <label class="form-check-label" for="all_ingredients"
+                  >Use All Ingredients</label
                 >
               </div>
               <div class="form-check mb-2">
@@ -90,32 +67,34 @@
                 <input
                   class="form-check-input"
                   type="checkbox"
-                  name="gluten_free"
-                  id="gluten_free"
+                  name="easy_only"
+                  id="easy_only"
                 />
-                <label class="form-check-label" for="gluten_free"
-                  >Gluten Free</label
+                <label class="form-check-label" for="easy_only"
+                  >Easy Only</label
                 >
               </div>
               <div class="form-check mb-2">
                 <input
                   class="form-check-input"
                   type="checkbox"
-                  name="dairy_free"
-                  id="dairy_free"
+                  name="kid_friendly"
+                  id="kid_friendly"
                 />
-                <label class="form-check-label" for="dairy_free"
-                  >Dairy Free</label
+                <label class="form-check-label" for="kid_friendly"
+                  >Kid Friendly</label
                 >
               </div>
-              <div class="form-check mb-3">
+              <div class="form-check mb-2">
                 <input
                   class="form-check-input"
                   type="checkbox"
-                  name="low_carb"
-                  id="low_carb"
+                  name="metric_system"
+                  id="metric_system"
                 />
-                <label class="form-check-label" for="low_carb">Low Carb</label>
+                <label class="form-check-label" for="metric_system"
+                  >Metric System</label
+                >
               </div>
 
               <!-- Hidden remaining filters -->
@@ -124,30 +103,75 @@
                   <input
                     class="form-check-input"
                     type="checkbox"
-                    name="vegan"
-                    id="vegan"
+                    name="no_cook_only"
+                    id="no_cook_only"
                   />
-                  <label class="form-check-label" for="vegan">Vegan</label>
+                  <label class="form-check-label" for="no_cook_only"
+                    >No-cook Only (Salads, smoothies, etc.)</label
+                  >
                 </div>
                 <div class="form-check mb-2">
                   <input
                     class="form-check-input"
                     type="checkbox"
-                    name="keto"
-                    id="keto"
+                    name="minimize_prep_time"
+                    id="minimize_prep_time"
                   />
-                  <label class="form-check-label" for="keto">Keto</label>
+                  <label class="form-check-label" for="minimize_prep_time"
+                    >Minimize Prep Time</label
+                  >
                 </div>
                 <div class="form-check mb-2">
                   <input
                     class="form-check-input"
                     type="checkbox"
-                    name="paleo"
-                    id="paleo"
+                    name="breakfast"
+                    id="breakfast"
                   />
-                  <label class="form-check-label" for="paleo">Paleo</label>
+                  <label class="form-check-label" for="breakfast"
+                    >Breakfast</label
+                  >
                 </div>
-                <!-- Add more filters here -->
+                <div class="form-check mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    name="lunch"
+                    id="lunch"
+                  />
+                  <label class="form-check-label" for="lunch">Lunch</label>
+                </div>
+                <div class="form-check mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    name="dinner"
+                    id="dinner"
+                  />
+                  <label class="form-check-label" for="dinner">Dinner</label>
+                </div>
+                <div class="form-check mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    name="basic"
+                    id="basic"
+                  />
+                  <label class="form-check-label" for="basic"
+                    >Basic / Practical</label
+                  >
+                </div>
+                <div class="form-check mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    name="surprising"
+                    id="surprising"
+                  />
+                  <label class="form-check-label" for="surprising"
+                    >Creative / Surprising</label
+                  >
+                </div>
               </div>
             </div>
 

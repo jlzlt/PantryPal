@@ -41,6 +41,13 @@ document.addEventListener("DOMContentLoaded", function () {
         currentInput.disabled = true;
         e.target.disabled = true;
 
+        const suggestionsBox =
+          e.target.parentElement.querySelector(".suggestions-list");
+        if (suggestionsBox) {
+          suggestionsBox.innerHTML = "";
+          suggestionsBox.style.display = "none";
+        }
+
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
         removeBtn.className =
@@ -71,8 +78,15 @@ document.addEventListener("DOMContentLoaded", function () {
     if (e.target.classList.contains("remove-ingredient")) {
       const group = e.target.closest(".input-group");
       if (group) {
-        group.remove();
-        updateHiddenInput();
+        group.classList.add("animate-out");
+        group.addEventListener(
+          "animationend",
+          () => {
+            group.remove();
+            updateHiddenInput();
+          },
+          { once: true }
+        );
       }
     }
   });

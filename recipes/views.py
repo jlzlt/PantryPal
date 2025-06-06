@@ -4,8 +4,18 @@ from django.views.decorators.http import require_GET
 from django.shortcuts import render
 from .forms import IngredientForm
 from openai import OpenAI
-from .constants import GROQ_API_KEY, GROQ_URL, GROQ_MODEL, FILTER_NAMES, INGREDIENTS
+from .constants import (
+    GROQ_API_KEY,
+    GROQ_URL,
+    GROQ_MODEL,
+    FILTER_NAMES,
+    INGREDIENTS,
+    FILTER_PHRASES,
+    EXAMPLE_RECIPE,
+)
 import json
+import re
+import logging
 
 
 def index(request):
@@ -15,44 +25,25 @@ def index(request):
 
     if request.method == "POST":
         ingredients = request.POST.get("ingredients", "").strip()
-        difficulty = request.POST.get("difficulty", "").strip()
-        time_limit = request.POST.get("time", "").strip()
 
         # Collect filters
         filters_selected = {f: (f in request.POST) for f in FILTER_NAMES}
 
         prompt = f"I have these ingredients: {ingredients}. "
-        prompt += "I want recipes"
 
         selected_filters = [
-            name.replace("_", " ")
+            FILTER_PHRASES[name]
             for name, selected in filters_selected.items()
-            if selected
+            if selected and name in FILTER_PHRASES
         ]
         if selected_filters:
-            prompt += f" with the following filters: {', '.join(selected_filters)}."
-
-        example_recipe = [
-            {
-                "title": "Grilled Cheese Sandwich",
-                "ingredients": [
-                    "2 slices of white bread",
-                    "2 slices of cheddar cheese",
-                    "1 tablespoon of butter",
-                ],
-                "instructions": [
-                    "Spread the butter on one side of each slice of bread.",
-                    "Place one slice, buttered side down, in a non-stick skillet over medium heat.",
-                    "Add the cheese on top of the bread in the skillet.",
-                    "Place the second slice of bread on top, buttered side up.",
-                    "Cook for 2-3 minutes, until the bottom is golden brown.",
-                    "Flip and cook the other side until the bread is toasted and the cheese is fully melted.",
-                ],
-            }
-        ]
+            prompt += f" Apply these preferences: {', '.join(selected_filters)}. "
 
         prompt += (
             "Give me 5 recipes I can make using the ingredients I have. "
+            "Your response should be ONLY a single valid JSON array containing exactly 5 objects. "
+            "Do not include any extra text, notes, or formatting outside the array (this part is super important, make sure to follow it). "
+            f"Here is one full example: {json.dumps(EXAMPLE_RECIPE)} ..."
             'Each object MUST have exactly three keys: "title", "ingredients", and "instructions". '
             '"title" must be a string. '
             "\"ingredients\" must be a JSON array of strings, where each string describes the amount and item clearly, e.g., '2 slices of bread', '1/4 cup chopped onion', '3 lettuce leaves'. "
@@ -62,50 +53,17 @@ def index(request):
             "Each instruction step should be written in full, descriptive sentences for beginners. "
             "Avoid vague phrases like 'cook the bacon' — explain how to cook it, how long, what to look for, etc. "
             "Do not repeat the same type of recipe (e.g. 3 sandwiches). Use a variety of dishes. "
-            "Respond ONLY with a single valid JSON array containing exactly 5 objects. "
-            "Do not include any extra text, notes, or formatting outside the array (this part is super important, make sure to follow it). "
-            f"Here is one full example: {json.dumps(example_recipe)} ..."
         )
 
-        if difficulty:
-            prompt += f" Difficulty level should be {difficulty}."
+        recipes, raw_text = call_groq(prompt)
 
-        if time_limit:
-            prompt += f" The cooking time should be less than {time_limit} minutes."
-
-        # Call Groq
-        client = OpenAI(base_url=GROQ_URL, api_key=GROQ_API_KEY)
-        response = client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=1,
-            max_completion_tokens=1024,
-            top_p=1,
-            stream=False,
-            stop=None,
-        )
-
-        suggestions_text = response.choices[0].message.content
-
-        print(suggestions_text)
-
-        if not suggestions_text or len(suggestions_text.strip()) < 10:
+        if not recipes:
             recipes = [
-                {"title": "AI response", "description": "No valid response received."}
+                {
+                    "title": "Error generating recipes",
+                    "description": raw_text or "No valid response received.",
+                }
             ]
-        else:
-            try:
-                # Parse the JSON array from the AI response
-                recipes = json.loads(
-                    suggestions_text.replace("'", '"')
-                )  # replace single quotes if AI uses them
-                if not isinstance(recipes, list) or not all(
-                    isinstance(r, dict) for r in recipes
-                ):
-                    raise ValueError("Not a valid list of recipe dicts")
-            except Exception:
-                # Fallback: If parsing fails, put the whole text as one recipe
-                recipes = [{"title": "AI response", "description": suggestions_text}]
 
     return render(
         request,
@@ -115,6 +73,73 @@ def index(request):
             "filters_selected": filters_selected,
         },
     )
+
+
+def call_groq(prompt, retries=5):
+    client = OpenAI(base_url=GROQ_URL, api_key=GROQ_API_KEY)
+    last_response_text = ""
+
+    for attempt in range(retries + 1):
+        logging.info(f"Groq attempt {attempt + 1}/{retries + 1}")
+        try:
+            response = client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=1,
+                max_tokens=1024,
+            )
+        except Exception as e:
+            logging.error(f"Groq API error on attempt {attempt + 1}: {e}")
+            continue
+
+        response_text = response.choices[0].message.content.strip()
+        last_response_text = response_text
+
+        logging.info(f"Raw response text (attempt {attempt + 1}): {response_text}")
+
+        json_text = extract_json(response_text)
+
+        try:
+            parsed = json.loads(json_text.replace("'", '"'))
+            if isinstance(parsed, list) and all(isinstance(r, dict) for r in parsed):
+                return parsed, response_text
+            else:
+                logging.warning(
+                    f"Parsed content is not a list of dicts (attempt {attempt + 1})"
+                )
+                continue
+        except Exception as e:
+            logging.warning(f"JSON parsing failed on attempt {attempt + 1}: {e}")
+            continue
+
+    # If all attempts fail
+    logging.error("All retries failed. Returning last raw response.")
+    return None, last_response_text
+
+
+def extract_json(text):
+    """
+    Extract the first top-level JSON array from text, even with nested dicts/lists.
+    Falls back to returning raw text if no valid-looking JSON is found.
+    """
+    # Remove code fences if present
+    text = re.sub(r"```(?:json)?", "", text).strip("` \n")
+
+    # Try to find the first [ and balance brackets to extract the full array
+    start = text.find("[")
+    if start == -1:
+        return text  # No JSON array found
+
+    depth = 0
+    for i in range(start, len(text)):
+        if text[i] == "[":
+            depth += 1
+        elif text[i] == "]":
+            depth -= 1
+            if depth == 0:
+                return text[start : i + 1]
+
+    return text  # fallback if brackets aren't balanced
 
 
 @require_GET

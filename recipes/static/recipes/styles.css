@@ -15,12 +15,29 @@
   100% {
     opacity: 1;
     transform: translateY(0);
-    max-height: 100px; /* or auto, but max-height helps with transition */
+    max-height: 100px;
   }
 }
 
 .input-group.animate-in {
   animation: fadeSlideIn 1s ease forwards;
+}
+
+@keyframes fadeSlideOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 100px;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-15px);
+    max-height: 0;
+  }
+}
+
+.input-group.animate-out {
+  animation: fadeSlideOut 0.5s ease forwards;
 }
 
 @keyframes fadeIn {
