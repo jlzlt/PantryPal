@@ -1,4 +1,5 @@
 import requests
+from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.shortcuts import render
@@ -17,6 +18,13 @@ from .constants import (
 import json
 import re
 import logging
+import uuid
+import os
+import urllib.parse
+import random
+
+API_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev"
+API_TOKEN = "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"
 
 
 def index(request):
@@ -67,6 +75,13 @@ def index(request):
                     "description": raw_text or "No valid response received.",
                 }
             ]
+        else:
+            for recipe in recipes:
+                prompt_img = f"A high quality photo of {recipe['title']} dish, appetizing and well-lit"
+                image_url = generate_image(prompt_img)
+
+                # Assign Pollinations image URL (no need to download or save)
+                recipe["image_url"] = image_url or "/static/default_recipe_img.png"
 
     # AJAX response (for JavaScript fetch)
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
@@ -78,7 +93,6 @@ def index(request):
         "recipes/index.html",
         {
             "recipes": recipes,
-            "filters_selected": filters_selected,
         },
     )
 
@@ -155,3 +169,20 @@ def autocomplete_ingredients(request):
     query = request.GET.get("query", "").lower()
     matches = [i for i in INGREDIENTS if i.startswith(query)][:5]
     return JsonResponse(matches, safe=False)
+
+
+def generate_image(prompt: str) -> str:
+    """
+    Generates a Pollinations.AI image URL from the given prompt.
+    Returns the image URL string.
+    """
+    # URL-encode the prompt
+    encoded_prompt = urllib.parse.quote(prompt)
+
+    # Optional: Use a random seed to avoid repeated identical images
+    seed = random.randint(1, 99999)
+
+    # Construct Pollinations image URL
+    image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&seed={seed}&nologo=true"
+
+    return image_url

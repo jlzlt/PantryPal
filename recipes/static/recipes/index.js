@@ -270,9 +270,7 @@ document.addEventListener("DOMContentLoaded", function () {
     spinner.style.display = "block";
     recipeContainer.style.display = "none";
 
-    console.log(form);
     const formData = new FormData(form);
-    console.log(formData);
 
     fetch("/", {
       method: "POST",
