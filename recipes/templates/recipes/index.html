@@ -195,29 +195,21 @@
           <h5 class="mb-0">Recipe Suggestions</h5>
         </div>
         <div class="card-body">
-          {% if recipes %} {% for recipe in recipes %}
-          <div class="mb-4 border-bottom pb-3">
-            <h5 class="mb-2">{{ recipe.title }}</h5>
-
-            <strong>Ingredients:</strong>
-            <ul>
-              {% for ingredient in recipe.ingredients %}
-              <li>{{ ingredient }}</li>
-              {% endfor %}
-            </ul>
-
-            <strong>Instructions:</strong>
-            <ol>
-              {% for step in recipe.instructions %}
-              <li>{{ step }}</li>
-              {% endfor %}
-            </ol>
+          <div
+            id="loading-spinner"
+            style="display: none; text-align: center; padding: 2rem"
+          >
+            <div
+              class="spinner-border text-success"
+              role="status"
+              aria-hidden="true"
+            ></div>
+            <div class="mt-2 text-success">Generating recipes...</div>
           </div>
-          {% endfor %} {% else %}
-          <p class="text-muted">
-            No recipes yet. Submit ingredients to get started!
-          </p>
-          {% endif %}
+
+          <div id="recipe-results">
+            {% include "recipes/_recipe_results.html" %}
+          </div>
         </div>
       </div>
     </div>

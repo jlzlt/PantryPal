@@ -6,6 +6,11 @@
   background-color: #ec5800 !important;
 }
 
+.navbar .nav-link:hover {
+  background-color: #ec5800 !important;
+  color: white !important;
+}
+
 @keyframes fadeSlideIn {
   0% {
     opacity: 0;

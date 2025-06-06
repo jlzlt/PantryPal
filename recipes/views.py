@@ -2,6 +2,7 @@ import requests
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.shortcuts import render
+from django.template.loader import render_to_string
 from .forms import IngredientForm
 from openai import OpenAI
 from .constants import (
@@ -25,6 +26,7 @@ def index(request):
 
     if request.method == "POST":
         ingredients = request.POST.get("ingredients", "").strip()
+        print(ingredients)
 
         # Collect filters
         filters_selected = {f: (f in request.POST) for f in FILTER_NAMES}
@@ -38,6 +40,7 @@ def index(request):
         ]
         if selected_filters:
             prompt += f" Apply these preferences: {', '.join(selected_filters)}. "
+            print(selected_filters)
 
         prompt += (
             "Give me 5 recipes I can make using the ingredients I have. "
@@ -46,7 +49,7 @@ def index(request):
             f"Here is one full example: {json.dumps(EXAMPLE_RECIPE)} ..."
             'Each object MUST have exactly three keys: "title", "ingredients", and "instructions". '
             '"title" must be a string. '
-            "\"ingredients\" must be a JSON array of strings, where each string describes the amount and item clearly, e.g., '2 slices of bread', '1/4 cup chopped onion', '3 lettuce leaves'. "
+            '"ingredients" must be a JSON array of strings, where each string describes the amount and item clearly. '
             '"instructions" must be a JSON array of strings. '
             "Each ingredient should be portioned for one person. "
             "Find the best possible combinations. If some ingredients don't fit or don't make sense you can skip them. "
@@ -64,6 +67,11 @@ def index(request):
                     "description": raw_text or "No valid response received.",
                 }
             ]
+
+    # AJAX response (for JavaScript fetch)
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        html = render_to_string("recipes/_recipe_results.html", {"recipes": recipes})
+        return JsonResponse({"html": html})
 
     return render(
         request,

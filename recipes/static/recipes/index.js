@@ -258,4 +258,43 @@ document.addEventListener("DOMContentLoaded", function () {
       toggleLink.textContent = "Show more filters ▼";
     }
   });
+
+  const form = document.getElementById("ingredient-filter-form");
+  const spinner = document.getElementById("loading-spinner");
+  const recipeContainer = document.getElementById("recipe-results");
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    // Show spinner and hide results while loading
+    spinner.style.display = "block";
+    recipeContainer.style.display = "none";
+
+    console.log(form);
+    const formData = new FormData(form);
+    console.log(formData);
+
+    fetch("/", {
+      method: "POST",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body: formData,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        recipeContainer.innerHTML = data.html;
+
+        // Hide spinner, show updated results
+        spinner.style.display = "none";
+        recipeContainer.style.display = "block";
+      })
+      .catch((err) => {
+        console.error("Error submitting form:", err);
+        spinner.style.display = "none";
+        recipeContainer.style.display = "block";
+        recipeContainer.innerHTML =
+          '<div class="alert alert-danger">Failed to load recipes. Please try again.</div>';
+      });
+  });
 });
