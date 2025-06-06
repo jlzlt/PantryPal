@@ -10,26 +10,50 @@ document.addEventListener("DOMContentLoaded", function () {
     hiddenInput.value = values.join(", ");
   }
 
-  // Add new ingredient input
+  // Adding a new ingredient
   ingredientList.addEventListener("click", function (e) {
-    if (e.target.classList.contains("add-ingredient")) {
-      e.preventDefault();
+    e.preventDefault();
 
-      // Disable the current input field
+    // Handle Add button
+    if (e.target.classList.contains("add-ingredient")) {
       const currentInput = e.target.previousElementSibling;
       if (currentInput && currentInput.classList.contains("ingredient-input")) {
+        const value = currentInput.value.trim();
+        if (value === "") {
+          alert("Enter ingredient to add.");
+          return;
+        }
+
+        // Disable current input and add remove button
         currentInput.disabled = true;
         e.target.disabled = true;
-      }
 
-      const newField = document.createElement("div");
-      newField.className = "input-group mb-2";
-      newField.innerHTML = `
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "btn btn-outline-danger remove-ingredient";
+        removeBtn.textContent = "Remove";
+        e.target.parentElement.appendChild(removeBtn);
+
+        // Add a new empty input group (without Remove button)
+        const newField = document.createElement("div");
+        newField.className = "input-group mb-2";
+        newField.innerHTML = `
           <input type="text" class="form-control ingredient-input" placeholder="e.g. onion" />
           <button type="button" class="btn btn-outline-primary add-ingredient">Add</button>
         `;
-      ingredientList.appendChild(newField);
-      updateHiddenInput();
+        ingredientList.appendChild(newField);
+
+        updateHiddenInput();
+      }
+    }
+
+    // Handle Remove button
+    if (e.target.classList.contains("remove-ingredient")) {
+      const group = e.target.closest(".input-group");
+      if (group) {
+        group.remove();
+        updateHiddenInput();
+      }
     }
   });
 
