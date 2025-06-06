@@ -39,7 +39,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Disable current input and add remove button
         currentInput.disabled = true;
-        e.target.disabled = true;
 
         const suggestionsBox =
           e.target.parentElement.querySelector(".suggestions-list");
@@ -60,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
         newField.className = "input-group mb-2 animate-in position-relative";
         newField.innerHTML = `
           <input type="text" class="form-control ingredient-input" placeholder="e.g. onion" autocomplete="off" />
-          <button type="button" class="btn btn-outline-primary add-ingredient">Add</button>
+          <button type="button" class="btn btn-outline-primary add-ingredient rounded-end">Add</button>
           <div class="suggestions-list position-absolute bg-white border rounded shadow-sm" style="top: 100%; left: 0; right: 0; z-index: 1000;"></div>
         `;
         ingredientList.appendChild(newField);
@@ -69,6 +68,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (newInput) {
           newInput.focus();
         }
+
+        e.target.remove();
 
         updateHiddenInput();
       }
@@ -91,18 +92,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  ingredientList.addEventListener("keydown", function (e) {
-    // Check if Enter key is pressed inside an ingredient input
-    if (e.target.classList.contains("ingredient-input") && e.key === "Enter") {
-      e.preventDefault(); // prevent form submit
-
-      // Find the corresponding Add button next to this input
-      const addBtn = e.target.parentElement.querySelector(".add-ingredient");
-      if (addBtn && !addBtn.disabled) {
-        addBtn.click(); // trigger the Add button click handler
-      }
-    }
-  });
+  // Track which suggestion is highlighted
+  let selectedSuggestionIndex = -1;
 
   ingredientList.addEventListener("input", function (e) {
     if (e.target.classList.contains("ingredient-input")) {
@@ -114,6 +105,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (query.length < 2) {
         suggestionsBox.style.display = "none";
         suggestionsBox.innerHTML = "";
+        selectedSuggestionIndex = -1;
         return;
       }
 
@@ -124,10 +116,12 @@ document.addEventListener("DOMContentLoaded", function () {
           suggestionsBox.innerHTML = "";
           if (suggestions.length === 0) {
             suggestionsBox.style.display = "none";
+            selectedSuggestionIndex = -1;
             return;
           }
 
-          selectedSuggestionIndex = -1;
+          selectedSuggestionIndex = -1; // reset highlight
+
           suggestions.forEach((suggestion) => {
             const item = document.createElement("div");
             item.className = "suggestion-item";
@@ -135,6 +129,9 @@ document.addEventListener("DOMContentLoaded", function () {
             item.addEventListener("click", () => {
               input.value = suggestion;
               suggestionsBox.style.display = "none";
+              suggestionsBox.innerHTML = "";
+              selectedSuggestionIndex = -1;
+              updateHiddenInput();
             });
             suggestionsBox.appendChild(item);
           });
@@ -144,8 +141,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  let selectedSuggestionIndex = -1;
-
   ingredientList.addEventListener("keydown", function (e) {
     if (!e.target.classList.contains("ingredient-input")) return;
 
@@ -154,7 +149,18 @@ document.addEventListener("DOMContentLoaded", function () {
       input.parentElement.querySelector(".suggestions-list");
     const items = suggestionsBox?.querySelectorAll(".suggestion-item");
 
-    if (!items || items.length === 0) return;
+    // If suggestions not visible or no items, reset index and exit early for keys other than Enter
+    if (!items || items.length === 0) {
+      if (e.key === "Enter") {
+        // No suggestions visible: this Enter triggers Add button
+        e.preventDefault();
+        const addBtn = input.parentElement.querySelector(".add-ingredient");
+        if (addBtn && !addBtn.disabled) {
+          addBtn.click();
+        }
+      }
+      return;
+    }
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -165,26 +171,27 @@ document.addEventListener("DOMContentLoaded", function () {
       selectedSuggestionIndex =
         (selectedSuggestionIndex - 1 + items.length) % items.length;
       updateSuggestionHighlight(items);
-    } else if (e.key === "Enter") {
-      const input = e.target;
-      e.preventDefault();
-
+    } else if (e.key === "Enter" || e.key === "Tab") {
       if (
         selectedSuggestionIndex >= 0 &&
         selectedSuggestionIndex < items.length
       ) {
-        input.value = items[selectedSuggestionIndex].textContent;
-      }
+        e.preventDefault(); // prevent form submit or blur
 
-      // Always close the suggestion box
-      suggestionsBox.innerHTML = "";
-      suggestionsBox.style.display = "none";
-      selectedSuggestionIndex = -1;
+        const selected = items[selectedSuggestionIndex];
+        input.value = selected.textContent;
+        updateHiddenInput();
 
-      // Optionally, trigger the Add button programmatically
-      const addButton = input.parentElement.querySelector(".add-ingredient");
-      if (addButton && !input.disabled) {
-        addButton.click();
+        suggestionsBox.innerHTML = "";
+        suggestionsBox.style.display = "none";
+        selectedSuggestionIndex = -1;
+      } else if (e.key === "Enter") {
+        // No highlighted suggestion, Enter should add ingredient
+        e.preventDefault();
+        const addBtn = input.parentElement.querySelector(".add-ingredient");
+        if (addBtn && !addBtn.disabled) {
+          addBtn.click();
+        }
       }
     } else if (e.key === "Escape") {
       suggestionsBox.innerHTML = "";

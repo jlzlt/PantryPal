@@ -2,27 +2,34 @@
 <div class="mb-4 border-bottom pb-3">
   <h5 class="mb-2">{{ recipe.title }}</h5>
   {% if recipe.image_url %}
-  <img
-    src="{{ recipe.image_url }}"
-    alt="{{ recipe.title }}"
-    class="img-fluid mb-2 recipe-image"
-  />
-  {% endif %}
-  <br />
-  <strong>Ingredients:</strong>
-  <ul>
-    {% for ingredient in recipe.ingredients %}
-    <li>{{ ingredient }}</li>
-    {% endfor %}
-  </ul>
+  <div class="image-wrapper position-relative">
+    <div class="image-loading mt-2 mb-2">
+      <div class="spinner-border text-secondary" role="status"></div>
+      <span class="text-muted small">Generating recipe image...</span>
+    </div>
+      <img
+        src="{{ recipe.image_url }}"
+        alt="{{ recipe.title }}"
+        class="img-fluid mb-2 recipe-image d-none"
+        onload="this.classList.remove('d-none'); this.previousElementSibling.style.display = 'none';"
+      />
+    </div>
+    {% endif %}
+    <strong>Ingredients:</strong>
+    <ul>
+      {% for ingredient in recipe.ingredients %}
+      <li>{{ ingredient }}</li>
+      {% endfor %}
+    </ul>
 
-  <strong>Instructions:</strong>
-  <ol>
-    {% for step in recipe.instructions %}
-    <li>{{ step }}</li>
-    {% endfor %}
-  </ol>
+    <strong>Instructions:</strong>
+    <ol>
+      {% for step in recipe.instructions %}
+      <li>{{ step }}</li>
+      {% endfor %}
+    </ol>
+  </div>
+  {% endfor %} {% else %}
+  <p class="text-muted">No recipes yet. Submit ingredients to get started!</p>
+  {% endif %}
 </div>
-{% endfor %} {% else %}
-<p class="text-muted">No recipes yet. Submit ingredients to get started!</p>
-{% endif %}

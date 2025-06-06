@@ -74,8 +74,22 @@
 }
 
 .recipe-image {
-  width: 300px; /* fixed width */
-  height: 200px; /* fixed height or auto for proportional */
-  object-fit: cover; /* crop and fill the area nicely */
+  width: 512px;
+  height: 512px;
+  object-fit: cover;
   border-radius: 8px;
+}
+
+.image-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 512px;
+  height: auto;
+}
+
+.image-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
