@@ -5,3 +5,48 @@
 .navbar .nav-link.active {
   background-color: #ec5800 !important;
 }
+
+@keyframes fadeSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-15px);
+    max-height: 0;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 100px; /* or auto, but max-height helps with transition */
+  }
+}
+
+.input-group.animate-in {
+  animation: fadeSlideIn 1s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.remove-ingredient.animate-in {
+  animation: fadeIn 1s ease forwards;
+}
+
+.suggestions-list {
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+}
+
+.suggestion-item {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background-color: #f0f0f0;
+}

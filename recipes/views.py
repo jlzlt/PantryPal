@@ -1,8 +1,10 @@
 import requests
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
 from django.shortcuts import render
 from .forms import IngredientForm
 from openai import OpenAI
-from .constants import GROQ_API_KEY, GROQ_URL, GROQ_MODEL, FILTER_NAMES
+from .constants import GROQ_API_KEY, GROQ_URL, GROQ_MODEL, FILTER_NAMES, INGREDIENTS
 import json
 
 
@@ -51,16 +53,17 @@ def index(request):
 
         prompt += (
             "Give me 5 recipes I can make using the ingredients I have. "
-            "Respond ONLY with a single valid JSON array containing exactly 5 objects. "
             'Each object MUST have exactly three keys: "title", "ingredients", and "instructions". '
             '"title" must be a string. '
             "\"ingredients\" must be a JSON array of strings, where each string describes the amount and item clearly, e.g., '2 slices of bread', '1/4 cup chopped onion', '3 lettuce leaves'. "
             '"instructions" must be a JSON array of strings. '
             "Each ingredient should be portioned for one person. "
+            "Find the best possible combinations. If some ingredients don't fit or don't make sense you can skip them. "
             "Each instruction step should be written in full, descriptive sentences for beginners. "
             "Avoid vague phrases like 'cook the bacon' — explain how to cook it, how long, what to look for, etc. "
             "Do not repeat the same type of recipe (e.g. 3 sandwiches). Use a variety of dishes. "
-            "Respond ONLY with valid JSON. Do not include any extra text, notes, or formatting outside the array. "
+            "Respond ONLY with a single valid JSON array containing exactly 5 objects. "
+            "Do not include any extra text, notes, or formatting outside the array (this part is super important, make sure to follow it). "
             f"Here is one full example: {json.dumps(example_recipe)} ..."
         )
 
@@ -112,3 +115,10 @@ def index(request):
             "filters_selected": filters_selected,
         },
     )
+
+
+@require_GET
+def autocomplete_ingredients(request):
+    query = request.GET.get("query", "").lower()
+    matches = [i for i in INGREDIENTS if i.startswith(query)][:5]
+    return JsonResponse(matches, safe=False)
