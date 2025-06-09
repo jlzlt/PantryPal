@@ -17,7 +17,7 @@
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon" />
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light bg-opacity-50">
       <div class="container-fluid">
         <a href="/">
           <img
@@ -49,7 +49,7 @@
             <li>
               <a
                 class="nav-link rounded-pill px-3 py-1 text-dark me-2"
-                href="/trending"
+                href="{% url 'trending' %}"
                 >Trending</a
               >
             </li>
@@ -57,7 +57,7 @@
             <li class="nav-item">
               <a
                 class="nav-link rounded-pill px-3 py-1 text-dark me-2"
-                href="/saved"
+                href="{% url 'saved' %}"
                 >Saved</a
               >
             </li>
@@ -65,7 +65,7 @@
             <li class="nav-item">
               <a
                 class="nav-link rounded-pill px-3 py-1 text-dark me-2"
-                href="/about"
+                href="{% url 'about' %}"
                 >About</a
               >
             </li>
@@ -74,7 +74,7 @@
             <li class="nav-item">
               <a
                 class="nav-link rounded-pill px-3 py-1 text-dark me-2"
-                href="/logout"
+                href="{% url 'logout' %}"
                 >Logout</a
               >
             </li>
@@ -82,8 +82,15 @@
             <li class="nav-item">
               <a
                 class="nav-link rounded-pill px-3 py-1 text-dark me-2"
-                href="/login"
+                href="{% url 'login' %}"
                 >Login</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link rounded-pill px-3 py-1 text-dark me-2"
+                href="{% url 'register' %}"
+                >Register</a
               >
             </li>
             {% endif %}

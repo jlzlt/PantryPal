@@ -1,3 +1,7 @@
+body {
+  background: linear-gradient(135deg, #f4f6f9, #d9e4f5, #c2d4f2);
+}
+
 .logo-img {
   height: 5rem;
 }
@@ -92,4 +96,9 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+.register,
+.login {
+  margin: 1rem;
 }

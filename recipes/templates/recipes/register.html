@@ -1,0 +1,50 @@
+{% extends "recipes/layout.html" %} {% block body %}
+
+<div class="register">
+  <h2 class="mb-3">Register</h2>
+
+  {% if message %}
+  <div>{{ message }}</div>
+  {% endif %}
+
+  <form action="{% url 'register' %}" method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <input
+        class="form-control mb-1"
+        autofocus
+        type="text"
+        name="username"
+        placeholder="Username"
+      />
+    </div>
+    <div class="form-group">
+      <input
+        class="form-control mb-1"
+        type="email"
+        name="email"
+        placeholder="Email Address"
+      />
+    </div>
+    <div class="form-group">
+      <input
+        class="form-control mb-1"
+        type="password"
+        name="password"
+        placeholder="Password"
+      />
+    </div>
+    <div class="form-group">
+      <input
+        class="form-control mb-1"
+        type="password"
+        name="confirmation"
+        placeholder="Confirm Password"
+      />
+    </div>
+    <input class="btn btn-primary mb-1" type="submit" value="Register" />
+  </form>
+
+  Already have an account? <a href="{% url 'login' %}">Log In here.</a>
+</div>
+{% endblock %}

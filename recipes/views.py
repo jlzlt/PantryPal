@@ -1,10 +1,12 @@
-import requests
-from django.conf import settings
-from django.http import JsonResponse
+from django.contrib.auth import authenticate, login, logout
+from django.http import JsonResponse, HttpResponseRedirect
+from django.db import IntegrityError
 from django.views.decorators.http import require_GET
 from django.shortcuts import render
 from django.template.loader import render_to_string
+from django.urls import reverse
 from .forms import IngredientForm
+from .models import User
 from openai import OpenAI
 from .constants import (
     GROQ_API_KEY,
@@ -18,13 +20,72 @@ from .constants import (
 import json
 import re
 import logging
-import uuid
-import os
 import urllib.parse
 import random
 
 API_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev"
 API_TOKEN = "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"
+
+
+def register(request):
+    if request.method == "POST":
+        username = request.POST["username"].strip()
+        email = request.POST["email"].strip()
+        password = request.POST["password"]
+        confirmation = request.POST["confirmation"]
+
+        if not username:
+            return render(
+                request, "recipes/register.html", {"message": "Username is required."}
+            )
+
+        if not email:
+            return render(
+                request, "recipes/register.html", {"message": "Email is required."}
+            )
+
+        if password != confirmation:
+            return render(
+                request, "recipes/register.html", {"message": "Passwords must match."}
+            )
+
+        try:
+            user = User.objects.create_user(username, email, password)
+            user.save()
+        except IntegrityError:
+            return render(
+                request, "recipes/register.html", {"message": "Username already taken."}
+            )
+
+        login(request, user)
+        return HttpResponseRedirect(reverse("index"))
+
+    else:
+        return render(request, "recipes/register.html")
+
+
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return HttpResponseRedirect(reverse("index"))
+        else:
+            render(
+                request,
+                "recipes/login.html",
+                {"message": "Invalid username and/or password."},
+            )
+    else:
+        return render(request, "recipes/login.html")
+
+
+def logout_view(request):
+    logout(request)
+    return HttpResponseRedirect(reverse("index"))
 
 
 def index(request):
@@ -186,3 +247,15 @@ def generate_image(prompt: str) -> str:
     image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&seed={seed}&nologo=true"
 
     return image_url
+
+
+def trending(request):
+    pass
+
+
+def about(request):
+    pass
+
+
+def saved(request):
+    pass
