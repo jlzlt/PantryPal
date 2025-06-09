@@ -12,7 +12,6 @@ from .constants import (
     GROQ_API_KEY,
     GROQ_URL,
     GROQ_MODEL,
-    FILTER_NAMES,
     INGREDIENTS,
     FILTER_PHRASES,
     EXAMPLE_RECIPE,
@@ -129,22 +128,25 @@ def index(request):
             return HttpResponseRedirect(reverse("index"))
 
         # Collect filters
-        filters_selected = {f: (f in request.POST) for f in FILTER_NAMES}
+        filters_selected = {f: (f in request.POST) for f in FILTER_PHRASES.keys()}
+        print(filters_selected)
 
-        prompt = f"I have these ingredients: {ingredients}. "
+        # Number of recipes to generate
+        num_recipes = request.POST.get("num_recipes", "").strip()
+
+        prompt = f"I have these ingredients: {ingredients}. Give me {num_recipes} recipes I can make using the ingredients I have. "
 
         selected_filters = [
             FILTER_PHRASES[name]
             for name, selected in filters_selected.items()
             if selected and name in FILTER_PHRASES
         ]
+        print(selected_filters)
         if selected_filters:
-            prompt += f" Apply these preferences: {', '.join(selected_filters)}. "
-            print(selected_filters)
+            prompt += f"Also apply these preferences: {', '.join(selected_filters)}. "
 
         prompt += (
-            "Give me 5 recipes I can make using the ingredients I have. "
-            "Your response should be ONLY a single valid JSON array containing exactly 5 objects. "
+            f"Your response should be ONLY a single valid JSON array containing exactly {num_recipes} objects. "
             "Do not include any extra text, notes, or formatting outside the array (this part is super important, make sure to follow it). "
             f"Here is one full example: {json.dumps(EXAMPLE_RECIPE)} ..."
             'Each object MUST have exactly three keys: "title", "ingredients", and "instructions". '
@@ -153,10 +155,12 @@ def index(request):
             '"instructions" must be a JSON array of strings. '
             "Each ingredient should be portioned for one person. "
             "Find the best possible combinations. If some ingredients don't fit or don't make sense you can skip them. "
-            "Each instruction step should be written in full, descriptive sentences for beginners. "
+            "Each instruction step should be written in full, descriptive sentences. "
             "Avoid vague phrases like 'cook the bacon' — explain how to cook it, how long, what to look for, etc. "
             "Do not repeat the same type of recipe (e.g. 3 sandwiches). Use a variety of dishes. "
         )
+
+        print(prompt)
 
         recipes, raw_text = call_groq(prompt)
 

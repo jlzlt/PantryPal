@@ -56,6 +56,21 @@
                 <input
                   class="form-check-input"
                   type="checkbox"
+                  name="allow_additional"
+                  id="allow_additional"
+                  title="Check this to let the recipe include ingredients not explicitly listed."
+                />
+                <label
+                  class="form-check-label"
+                  for="allow_additional"
+                  title="Check this to let the recipe include ingredients not explicitly listed."
+                  >Allow additional ingredients</label
+                >
+              </div>
+              <div class="form-check mb-2">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
                   name="quick"
                   id="quick"
                 />
@@ -74,17 +89,7 @@
                   >Easy Only</label
                 >
               </div>
-              <div class="form-check mb-2">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  name="kid_friendly"
-                  id="kid_friendly"
-                />
-                <label class="form-check-label" for="kid_friendly"
-                  >Kid Friendly</label
-                >
-              </div>
+
               <div class="form-check mb-2">
                 <input
                   class="form-check-input"
@@ -99,6 +104,17 @@
 
               <!-- Hidden remaining filters -->
               <div id="more-filters" style="display: none">
+                <div class="form-check mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    name="kid_friendly"
+                    id="kid_friendly"
+                  />
+                  <label class="form-check-label" for="kid_friendly"
+                    >Kid Friendly</label
+                  >
+                </div>
                 <div class="form-check mb-2">
                   <input
                     class="form-check-input"
@@ -179,7 +195,25 @@
             <a href="#" id="toggle-filters" class="d-block mb-3"
               >Show more filters ▼</a
             >
-
+            <!-- Inside your form (e.g., right before the submit button) -->
+            <div class="mb-3">
+              <label for="num_recipes" class="form-label"
+                >Number of recipes to generate:</label
+              >
+              <select
+                class="form-select"
+                id="num_recipes"
+                name="num_recipes"
+                required
+              >
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4" selected>4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
+            </div>
             <button type="submit" class="btn btn-success w-100">
               Generate Recipes
             </button>

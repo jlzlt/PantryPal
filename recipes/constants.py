@@ -6,34 +6,20 @@ GROQ_API_KEY = "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"
 GROQ_URL = "https://api.groq.com/openai/v1"
 GROQ_MODEL = "llama3-70b-8192"
 
-FILTER_NAMES = (
-    "use_all_ingredients",
-    "under_30_minutes",
-    "easy_only",
-    "kid_friendly",
-    "metric_system",
-    "no_cook_only",
-    "minimize_prep_time",
-    "breakfast",
-    "lunch",
-    "dinner",
-    "basic_practical",
-    "creative_surprising",
-)
-
 FILTER_PHRASES = {
-    "use_all_ingredients": "Use all ingredients",
-    "under_30_minutes": "Under 30 minutes",
+    "all_ingredients": "Use all ingredients",
+    "quick": "Under 30 minutes",
     "easy_only": "Easy only",
     "kid_friendly": "Kid friendly",
     "metric_system": "Use metric units",
+    "allow_additional": "Allow additional ingredients beyond those specified",
     "no_cook_only": "No-cook only (salads, smoothies, etc.)",
     "minimize_prep_time": "Minimize prep time",
     "breakfast": "Make it suitable for breakfast",
     "lunch": "Make it suitable for lunch",
     "dinner": "Make it suitable for dinner",
-    "basic_practical": "Basic and practical",
-    "creative_surprising": "Creative or surprising",
+    "basic": "Basic and practical",
+    "surprising": "Creative or surprising",
 }
 
 INGREDIENTS = []
