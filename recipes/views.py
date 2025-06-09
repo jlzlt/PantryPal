@@ -23,9 +23,6 @@ import logging
 import urllib.parse
 import random
 
-API_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev"
-API_TOKEN = "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"
-
 
 def register(request):
     if request.method == "POST":
