@@ -1,33 +1,37 @@
-{% extends "recipes/layout.html" %} {% block body %}
+{% extends "recipes/layout.html" %} {% load static %} {% block body %}
 <div class="login">
   <h2 class="mb-3">Login</h2>
-
-  {% if message %}
-  <div>{{ message }}</div>
-  {% endif %}
 
   <form action="{% url 'login' %}" method="post">
     {% csrf_token %}
     <div class="form-group">
       <input
         autofocus
-        class="form-control mb-1"
+        class="form-control mb-1 {% if errors.username %}is-invalid{% endif %}"
         type="text"
         name="username"
         placeholder="Username"
       />
+      {% if errors.username %}
+      <div class="invalid-feedback mb-2">{{ errors.username }}</div>
+      {% endif %}
     </div>
     <div class="form-group">
       <input
-        class="form-control mb-1"
+        class="form-control mb-1 {% if errors.password %}is-invalid{% endif %}"
         type="password"
         name="password"
         placeholder="Password"
       />
+      {% if errors.password %}
+      <div class="invalid-feedback mb-2">{{ errors.password }}</div>
+      {% endif %}
     </div>
     <input class="btn btn-primary mb-1" type="submit" value="Login" />
   </form>
 
   Don't have an account? <a href="{% url 'register' %}">Register here.</a>
 </div>
+{% endblock %} {% block script %}
+<script src="{% static 'recipes/login.js' %}"></script>
 {% endblock %}

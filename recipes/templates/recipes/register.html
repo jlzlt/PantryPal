@@ -1,50 +1,62 @@
-{% extends "recipes/layout.html" %} {% block body %}
+{% extends "recipes/layout.html" %} {% load static %} {% block body %}
 
 <div class="register">
   <h2 class="mb-3">Register</h2>
-
-  {% if message %}
-  <div>{{ message }}</div>
-  {% endif %}
 
   <form action="{% url 'register' %}" method="post">
     {% csrf_token %}
     <div class="form-group">
       <input
-        class="form-control mb-1"
+        class="form-control mb-1 {% if errors.username %}is-invalid{% endif %}"
         autofocus
         type="text"
         name="username"
         placeholder="Username"
+        value="{{ values.username|default:'' }}"
       />
+      {% if errors.username %}
+      <div class="invalid-feedback mb-2">{{ errors.username }}</div>
+      {% endif %}
     </div>
     <div class="form-group">
       <input
-        class="form-control mb-1"
+        class="form-control mb-1 {% if errors.email %}is-invalid{% endif %}"
         type="email"
         name="email"
         placeholder="Email Address"
+        value="{{ values.email|default:'' }}"
       />
+      {% if errors.email %}
+      <div class="invalid-feedback mb-2">{{ errors.email }}</div>
+      {% endif %}
     </div>
     <div class="form-group">
       <input
-        class="form-control mb-1"
+        class="form-control mb-1 {% if errors.password %}is-invalid{% endif %}"
         type="password"
         name="password"
         placeholder="Password"
       />
+      {% if errors.password %}
+      <div class="invalid-feedback mb-2">{{ errors.password }}</div>
+      {% endif %}
     </div>
     <div class="form-group">
       <input
-        class="form-control mb-1"
+        class="form-control mb-1 {% if errors.confirmation %}is-invalid{% endif %}"
         type="password"
         name="confirmation"
         placeholder="Confirm Password"
       />
+      {% if errors.confirmation %}
+      <div class="invalid-feedback mb-2">{{ errors.confirmation }}</div>
+      {% endif %}
     </div>
     <input class="btn btn-primary mb-1" type="submit" value="Register" />
   </form>
 
   Already have an account? <a href="{% url 'login' %}">Log In here.</a>
 </div>
+{% endblock %} {% block script %}
+<script src="{% static 'recipes/register.js' %}"></script>
 {% endblock %}

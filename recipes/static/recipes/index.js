@@ -17,8 +17,17 @@ document.addEventListener("DOMContentLoaded", function () {
     // Handle Add button
     if (e.target.classList.contains("add-ingredient")) {
       const currentInput = e.target.previousElementSibling;
+
       if (currentInput && currentInput.classList.contains("ingredient-input")) {
         const value = currentInput.value.trim();
+
+        // Remove existing error if any
+        const existingError =
+          currentInput.parentElement.querySelector(".invalid-feedback");
+        if (existingError) existingError.remove();
+        currentInput.classList.remove("is-invalid");
+
+        // Validate input
         if (value === "") {
           // Add red border and error message below the input
           currentInput.classList.add("is-invalid");
@@ -30,12 +39,6 @@ document.addEventListener("DOMContentLoaded", function () {
           currentInput.parentElement.appendChild(errorMsg);
           return;
         }
-
-        // Remove error if it's there
-        currentInput.classList.remove("is-invalid");
-        const leftoverError =
-          currentInput.parentElement.querySelector(".invalid-feedback");
-        if (leftoverError) leftoverError.remove();
 
         // Disable current input and add remove button
         currentInput.disabled = true;
@@ -101,6 +104,12 @@ document.addEventListener("DOMContentLoaded", function () {
       const query = input.value.trim().toLowerCase();
       const suggestionsBox =
         input.parentElement.querySelector(".suggestions-list");
+
+      if (input.classList.contains("is-invalid") && query.length > 0) {
+        input.classList.remove("is-invalid");
+        const errorMsg = input.parentElement.querySelector(".invalid-feedback");
+        if (errorMsg) errorMsg.remove();
+      }
 
       if (query.length < 2) {
         suggestionsBox.style.display = "none";

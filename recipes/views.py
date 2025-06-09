@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse, HttpResponseRedirect
 from django.db import IntegrityError
 from django.views.decorators.http import require_GET
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
 from .forms import IngredientForm
@@ -29,58 +29,89 @@ API_TOKEN = "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"
 
 def register(request):
     if request.method == "POST":
-        username = request.POST["username"].strip()
-        email = request.POST["email"].strip()
-        password = request.POST["password"]
-        confirmation = request.POST["confirmation"]
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "")
+        confirmation = request.POST.get("confirmation", "")
+
+        errors = {}
 
         if not username:
-            return render(
-                request, "recipes/register.html", {"message": "Username is required."}
-            )
+            errors["username"] = "Username is required."
+        elif User.objects.filter(username=username).exists():
+            errors["username"] = "Username already taken."
 
         if not email:
-            return render(
-                request, "recipes/register.html", {"message": "Email is required."}
-            )
+            errors["email"] = "Email is required."
+        elif User.objects.filter(email=email).exists():
+            errors["email"] = "Email already in use."
 
-        if password != confirmation:
+        if not password:
+            errors["password"] = "Password is required."
+        if not confirmation:
+            errors["confirmation"] = "Please confirm your password."
+        elif password != confirmation:
+            errors["confirmation"] = "Passwords must match."
+
+        if errors:
             return render(
-                request, "recipes/register.html", {"message": "Passwords must match."}
+                request,
+                "recipes/register.html",
+                {
+                    "errors": errors,
+                    "values": {
+                        "username": username,
+                        "email": email,
+                    },
+                },
             )
 
         try:
             user = User.objects.create_user(username, email, password)
-            user.save()
         except IntegrityError:
             return render(
-                request, "recipes/register.html", {"message": "Username already taken."}
+                request,
+                "recipes/register.html",
+                {"errors": {"username": "Username already exists."}},
             )
 
         login(request, user)
-        return HttpResponseRedirect(reverse("index"))
+        return redirect("index")
 
-    else:
-        return render(request, "recipes/register.html")
+    return render(request, "recipes/register.html")
 
 
 def login_view(request):
     if request.method == "POST":
-        username = request.POST["username"]
-        password = request.POST["password"]
-        user = authenticate(request, username=username, password=password)
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "").strip()
 
-        if user is not None:
-            login(request, user)
-            return HttpResponseRedirect(reverse("index"))
-        else:
-            render(
-                request,
-                "recipes/login.html",
-                {"message": "Invalid username and/or password."},
-            )
-    else:
-        return render(request, "recipes/login.html")
+        errors = {}
+
+        if not username:
+            errors["username"] = "Username is required."
+        if not password:
+            errors["password"] = "Password is required."
+
+        if username and password:
+            try:
+                user_check = User.objects.get(username=username)
+                # If user exists, check if password is correct
+                authenticated_user = authenticate(
+                    request, username=username, password=password
+                )
+                if authenticated_user is not None:
+                    login(request, authenticated_user)
+                    return redirect(reverse("index"))
+                else:
+                    errors["password"] = "Incorrect password."
+            except User.DoesNotExist:
+                errors["username"] = "This username does not exist."
+
+        # Render login page with field-specific errors
+        return render(request, "recipes/login.html", {"errors": errors})
+
+    return render(request, "recipes/login.html")
 
 
 def logout_view(request):
@@ -96,6 +127,9 @@ def index(request):
     if request.method == "POST":
         ingredients = request.POST.get("ingredients", "").strip()
         print(ingredients)
+
+        if not ingredients:
+            return HttpResponseRedirect(reverse("index"))
 
         # Collect filters
         filters_selected = {f: (f in request.POST) for f in FILTER_NAMES}
