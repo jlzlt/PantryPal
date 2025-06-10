@@ -12,7 +12,7 @@ FILTER_PHRASES = {
     "easy_only": "Easy only",
     "kid_friendly": "Kid friendly",
     "metric_system": "Use metric units",
-    "allow_additional": "Allow additional ingredients beyond those specified",
+    "allow_additional": "You can use additional ingredients beyond those specified",
     "no_cook_only": "No-cook only (salads, smoothies, etc.)",
     "minimize_prep_time": "Minimize prep time",
     "breakfast": "Make it suitable for breakfast",

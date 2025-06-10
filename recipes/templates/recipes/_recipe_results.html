@@ -1,14 +1,18 @@
-{% if recipes %}
+{% load static %} {% if recipes %}
 <div class="row g-4">
   {% for recipe in recipes %}
-  <div class="col-md-6 col-xl-4">
+  <div class="col-md-6 col-xl-6">
     <div class="card h-100 shadow-sm">
       {% if recipe.image_url %}
       <div class="recipe-image-wrapper position-relative">
         <div
           class="image-loading d-flex flex-column align-items-center justify-content-center"
         >
-          <div class="spinner-border text-secondary" role="status"></div>
+          <img
+            src="{% static 'recipes/generating-image.gif' %}"
+            alt="Cooking animation"
+            style="width: 50px; height: 50px"
+          />
           <span class="text-muted small mt-1">Generating AI image...</span>
         </div>
         <img
@@ -52,5 +56,12 @@
   {% endfor %}
 </div>
 {% else %}
-<p class="text-muted">No recipes yet. Submit ingredients to get started!</p>
+<div class="text-center py-5">
+  <div style="font-size: 4rem; margin-bottom: 1rem">🍳</div>
+  <h4 class="mb-3">Ready to Cook Something Amazing?</h4>
+  <p>
+    Add some ingredients and filters to get started with personalized recipe
+    suggestions.
+  </p>
+</div>
 {% endif %}

@@ -4,9 +4,9 @@
   <div class="row">
     <!-- Sidebar (filters) -->
     <div class="col-lg-4 mb-4">
-      <div class="card shadow">
+      <div class="card shadow" style="opacity: 0.9">
         <div class="card-header bg-primary text-white">
-          <h5 class="mb-0">Ingredients & Filters</h5>
+          <h5 class="mb-0">🧄 Ingredients & Filters</h5>
         </div>
         <div class="card-body">
           <form method="POST" id="ingredient-filter-form">
@@ -215,7 +215,7 @@
               </select>
             </div>
             <button type="submit" class="btn btn-success w-100">
-              Generate Recipes
+              <strong>🪄 Generate Recipes</strong>
             </button>
           </form>
         </div>
@@ -223,27 +223,23 @@
     </div>
 
     <!-- Recipe results area -->
-    <div class="col-lg-8">
-      <div class="card shadow">
+    <div class="col-lg-8 mb-4">
+      <div class="card shadow" style="opacity: 0.9">
         <div class="card-header bg-success text-white">
-          <h5 class="mb-0">Recipe Suggestions</h5>
+          <h5 class="mb-0">🍽️ Recipe Suggestions</h5>
         </div>
         <div class="card-body">
           <div
             id="loading-spinner"
-            style="
-              display: none;
-              text-align: center;
-              padding: 2rem;
-              min-height: 250px;
-            "
+            class="text-center py-4"
+            style="min-height: 250px; display: none"
           >
-            <div
-              class="spinner-border text-success"
-              role="status"
-              aria-hidden="true"
-            ></div>
-            <div class="mt-2 text-success">Generating recipes...</div>
+            <img
+              src="{% static 'recipes/cooking-animation.gif' %}"
+              alt="Cooking animation"
+              style="width: 150px; height: 150px"
+            />
+            <div class="text-success mt-2">Generating recipes...</div>
           </div>
           <div id="recipe-results">
             {% include "recipes/_recipe_results.html" %}

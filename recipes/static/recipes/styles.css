@@ -7,11 +7,14 @@ body {
 }
 
 .navbar .nav-link.active {
-  background-color: #ec5800 !important;
+  background-color: #00b09b !important;
+  color: white !important;
+  /* #ec5800 - original orange */
 }
 
 .navbar .nav-link:hover {
-  background-color: #ec5800 !important;
+  background-color: #00b09b !important;
+  /* #ec5800 - original orange */
   color: white !important;
 }
 
@@ -126,3 +129,12 @@ body {
 .recipe-image:not(.d-none) {
   opacity: 1;
 }
+
+.card-header {
+  background: linear-gradient(90deg, #00b09b, #96c93d);
+  /* linear-gradient(90deg, #ff8a00, #e52e71) - warm, playful (orange–pink) */
+  /* linear-gradient(90deg, #00b09b, #96c93d) – fresh and organic (mint–lime) */
+  /* linear-gradient(90deg, #2b5876, #4e4376) — navy blue to purple (rich and deep) */
+}
+
+/* linear-gradient(90deg, #2b5876, #4e4376) */
