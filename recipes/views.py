@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
 from .forms import IngredientForm
-from .models import User
+from .models import User, SavedRecipe, SharedRecipe, RecipeComment, RecipeVote
 from openai import OpenAI
 from .constants import (
     GROQ_API_KEY,
@@ -181,7 +181,9 @@ def index(request):
 
     # AJAX response (for JavaScript fetch)
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        html = render_to_string("recipes/_recipe_results.html", {"recipes": recipes})
+        html = render_to_string(
+            "recipes/_recipe_results.html", {"recipes": recipes}, request=request
+        )
         return JsonResponse({"html": html})
 
     return render(
@@ -292,3 +294,29 @@ def about(request):
 
 def saved(request):
     pass
+
+
+@login_required
+@csrf_protect
+def save_recipe(request):
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        ingredients = request.POST.get("ingredients", "").strip()
+        instructions = request.POST.get("instructions", "").strip()
+        tags = request.POST.get("tags", "").strip()
+        image_url = request.POST.get("image_url", "").strip()
+
+        if not title or not ingredients or not instructions:
+            # Optionally handle invalid submission
+            return redirect("home")  # or show error
+
+        SavedRecipe.objects.create(
+            user=request.user,
+            title=title,
+            ingredients=ingredients,
+            instructions=instructions,
+            tags=tags,
+            image_url=image_url,
+        )
+
+        return redirect("home")  # or use messages + redirect to recipes

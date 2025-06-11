@@ -216,50 +216,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Update hidden input on submit
-  document
-    .getElementById("ingredient-filter-form")
-    .addEventListener("submit", function (e) {
-      updateHiddenInput();
-
-      const inputs = ingredientList.querySelectorAll(".ingredient-input");
-      let hasValid = false;
-
-      // Clear any previous error styles/messages
-      inputs.forEach((input) => {
-        input.classList.remove("is-invalid");
-        const existingError =
-          input.parentElement.querySelector(".invalid-feedback");
-        if (existingError) existingError.remove();
-      });
-
-      // Check if there's at least one non-empty input
-      inputs.forEach((input) => {
-        if (input.value.trim() !== "") {
-          hasValid = true;
-        }
-      });
-
-      if (!hasValid) {
-        e.preventDefault();
-
-        // Add red border and inline message to the latest active input field
-        const lastInputGroup = ingredientList.querySelector(
-          ".input-group:last-child"
-        );
-        const input = lastInputGroup.querySelector(".ingredient-input");
-
-        input.classList.add("is-invalid");
-
-        const errorMsg = document.createElement("div");
-        errorMsg.className = "invalid-feedback";
-        errorMsg.textContent =
-          "Please enter at least one ingredient before submitting.";
-
-        input.parentElement.appendChild(errorMsg);
-      }
-    });
-
   // Toggle "show more" filters
   const toggleLink = document.getElementById("toggle-filters");
   const moreFilters = document.getElementById("more-filters");
@@ -281,6 +237,41 @@ document.addEventListener("DOMContentLoaded", function () {
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
+
+    updateHiddenInput();
+
+    const inputs = ingredientList.querySelectorAll(".ingredient-input");
+    let hasValid = false;
+
+    // Clear any previous error styles/messages
+    inputs.forEach((input) => {
+      input.classList.remove("is-invalid");
+      const existingError =
+        input.parentElement.querySelector(".invalid-feedback");
+      if (existingError) existingError.remove();
+
+      if (input.value.trim() !== "") {
+        hasValid = true;
+      }
+    });
+
+    // Show validation error if no valid input
+    if (!hasValid) {
+      const lastInputGroup = ingredientList.querySelector(
+        ".input-group:last-child"
+      );
+      const input = lastInputGroup.querySelector(".ingredient-input");
+
+      input.classList.add("is-invalid");
+
+      const errorMsg = document.createElement("div");
+      errorMsg.className = "invalid-feedback";
+      errorMsg.textContent =
+        "Please enter at least one ingredient before submitting.";
+
+      input.parentElement.appendChild(errorMsg);
+      return;
+    }
 
     // Show spinner and hide results while loading
     spinner.style.display = "block";

@@ -11,6 +11,7 @@ urlpatterns = [
     path("trending/", views.trending, name="trending"),
     path("about/", views.about, name="about"),
     path("saved/", views.saved, name="saved"),
+    path("save_recipe/", views.save_recipe, name="save_recipe"),
     path(
         "autocomplete_ingredients/", views.autocomplete_ingredients, name="autocomplete"
     ),

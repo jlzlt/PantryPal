@@ -50,18 +50,38 @@
             {% endfor %}
           </ol>
         </div>
-        <div class="recipe-actions mt-auto d-flex justify-content-around pt-3">
+        <form
+          method="POST"
+          action="{% url 'save_recipe' %}"
+          class="w-100 d-flex justify-content-center"
+        >
+          {% csrf_token %}
+          <input type="hidden" name="title" value="{{ recipe.title }}" />
+          <input
+            type="hidden"
+            name="ingredients"
+            value="{{ recipe.ingredients }}"
+          />
+          <input
+            type="hidden"
+            name="instructions"
+            value="{{ recipe.instructions }}"
+          />
+          <input type="hidden" name="tags" value="{{ recipe.filters }}" />
+          <input
+            type="hidden"
+            name="image_url"
+            value="{{ recipe.image_url }}"
+          />
+
           <button
-            class="btn btn-primary btn-sm save-recipe-btn flex-grow-1 mx-1"
+            type="submit"
+            class="btn btn-outline-success btn-sm w-100"
+            style="font-weight: 500"
           >
-            Save Recipe
+            💾 Save Recipe
           </button>
-          <button
-            class="btn btn-outline-secondary btn-sm share-community-btn flex-grow-1 mx-1"
-          >
-            Share to Community
-          </button>
-        </div>
+        </form>
       </div>
     </div>
   </div>
