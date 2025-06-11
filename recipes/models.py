@@ -27,7 +27,6 @@ class SharedRecipe(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="shared")
     shared_at = models.DateTimeField(auto_now_add=True, blank=False, null=False)
     user_comment = models.TextField()
-    meal_photo = models.ImageField(upload_to="media/shared_meals/")
 
 
 class RecipeComment(models.Model):
