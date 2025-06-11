@@ -1,11 +1,13 @@
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
 from django.http import JsonResponse, HttpResponseRedirect
-from django.db import IntegrityError
-from django.views.decorators.http import require_GET
+from django.db import IntegrityError, transaction
+from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
-from .forms import IngredientForm
 from .models import User, SavedRecipe, SharedRecipe, RecipeComment, RecipeVote
 from openai import OpenAI
 from .constants import (
@@ -21,6 +23,9 @@ import re
 import logging
 import urllib.parse
 import random
+import requests
+import hashlib
+import ast
 
 
 def register(request):
@@ -118,7 +123,6 @@ def logout_view(request):
 def index(request):
     recipes = None
     filters_selected = {}
-    image_urls = []
 
     if request.method == "POST":
         ingredients = request.POST.get("ingredients", "").strip()
@@ -178,6 +182,11 @@ def index(request):
 
                 # Assign Pollinations image URL (no need to download or save)
                 recipe["image_url"] = image_url or "/static/default_recipe_img.png"
+
+                # Generate and attach hash to recipe
+                recipe["hash"] = generate_recipe_hash(recipe)
+
+                recipe["filters"] = selected_filters
 
     # AJAX response (for JavaScript fetch)
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
@@ -296,27 +305,104 @@ def saved(request):
     pass
 
 
+def generate_recipe_hash(recipe):
+    raw_data = json.dumps(
+        {
+            "title": recipe["title"],
+            "ingredients": recipe["ingredients"],
+            "instructions": recipe["instructions"],
+        },
+        sort_keys=True,
+    )
+    return hashlib.sha256(raw_data.encode()).hexdigest()
+
+
 @login_required
-@csrf_protect
+@require_POST
 def save_recipe(request):
-    if request.method == "POST":
-        title = request.POST.get("title", "").strip()
-        ingredients = request.POST.get("ingredients", "").strip()
-        instructions = request.POST.get("instructions", "").strip()
-        tags = request.POST.get("tags", "").strip()
-        image_url = request.POST.get("image_url", "").strip()
+    title = request.POST.get("title")
+    image_url = request.POST.get("image_url")
+    recipe_hash = request.POST.get("hash")
 
-        if not title or not ingredients or not instructions:
-            # Optionally handle invalid submission
-            return redirect("home")  # or show error
+    try:
+        ingredients = ast.literal_eval(request.POST.get("ingredients", "[]"))
+        instructions = ast.literal_eval(request.POST.get("instructions", "[]"))
+        tags = ast.literal_eval(request.POST.get("tags", "[]"))
 
+        if not isinstance(ingredients, list):
+            raise ValueError("Ingredients must be a list")
+        if not isinstance(instructions, list):
+            raise ValueError("Instructions must be a list")
+        if not isinstance(tags, list):
+            raise ValueError("Tags must be a list")
+
+    except (ValueError, SyntaxError) as e:
+        ingredients = []
+        instructions = []
+        tags = []
+
+    if not all([title, recipe_hash, ingredients, instructions]):
+        return JsonResponse(
+            {"status": "error", "message": "Missing required fields"}, status=400
+        )
+
+    # Check for duplicate
+    if SavedRecipe.objects.filter(user=request.user, hash=recipe_hash).exists():
+        return JsonResponse(
+            {
+                "status": "exists",
+                "message": "Recipe already saved.",
+                "hash": recipe_hash,
+            }
+        )
+
+    # Download and save the image file
+    image_file = None
+    if image_url:
+        try:
+            response = requests.get(image_url, timeout=5)
+            response.raise_for_status()
+            image_file = ContentFile(response.content, name=f"{recipe_hash}.jpg")
+        except requests.RequestException:
+            pass
+
+    # Save recipe
+    with transaction.atomic():
         SavedRecipe.objects.create(
             user=request.user,
             title=title,
             ingredients=ingredients,
             instructions=instructions,
             tags=tags,
-            image_url=image_url,
+            hash=recipe_hash,
+            image=image_file,
         )
 
-        return redirect("home")  # or use messages + redirect to recipes
+    return JsonResponse(
+        {
+            "status": "saved",
+            "message": "Recipe saved successfully.",
+            "hash": recipe_hash,
+        }
+    )
+
+
+@login_required
+@require_POST
+def remove_saved_recipe(request):
+    recipe_hash = request.POST.get("hash")
+    if not recipe_hash:
+        return JsonResponse(
+            {"status": "error", "message": "Missing recipe hash"}, status=400
+        )
+
+    try:
+        saved_recipe = SavedRecipe.objects.get(user=request.user, hash=recipe_hash)
+        saved_recipe.delete()
+        return JsonResponse(
+            {"status": "removed", "message": "Recipe removed from saved"}
+        )
+    except SavedRecipe.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "Recipe not found"}, status=404
+        )

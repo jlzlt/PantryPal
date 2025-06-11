@@ -12,6 +12,7 @@ urlpatterns = [
     path("about/", views.about, name="about"),
     path("saved/", views.saved, name="saved"),
     path("save_recipe/", views.save_recipe, name="save_recipe"),
+    path("remove_saved_recipe/", views.remove_saved_recipe, name="remove_saved_recipe"),
     path(
         "autocomplete_ingredients/", views.autocomplete_ingredients, name="autocomplete"
     ),

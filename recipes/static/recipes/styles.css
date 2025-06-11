@@ -159,3 +159,13 @@ body {
 .form-check:hover .form-check-input {
   border-color: #00b09b;
 }
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.save-recipe-form {
+  margin-top: auto;
+}

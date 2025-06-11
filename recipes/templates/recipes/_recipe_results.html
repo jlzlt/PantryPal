@@ -50,12 +50,15 @@
             {% endfor %}
           </ol>
         </div>
+        {% if user.is_authenticated %}
         <form
           method="POST"
           action="{% url 'save_recipe' %}"
-          class="w-100 d-flex justify-content-center"
+          enctype="multipart/form-data"
+          class="w-100 d-flex justify-content-center save-recipe-form"
         >
           {% csrf_token %}
+          <input type="hidden" name="hash" value="{{ recipe.hash }}" />
           <input type="hidden" name="title" value="{{ recipe.title }}" />
           <input
             type="hidden"
@@ -82,6 +85,7 @@
             💾 Save Recipe
           </button>
         </form>
+        {% endif %}
       </div>
     </div>
   </div>
