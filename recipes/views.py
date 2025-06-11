@@ -187,9 +187,7 @@ def index(request):
     return render(
         request,
         "recipes/index.html",
-        {
-            "recipes": recipes,
-        },
+        {"recipes": recipes},
     )
 
 

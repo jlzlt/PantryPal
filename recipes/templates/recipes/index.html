@@ -214,6 +214,24 @@
                 <option value="6">6</option>
               </select>
             </div>
+            {% if user.is_authenticated and search_history %}
+            <div class="mb-3">
+              <label class="form-label"
+                ><strong>🕓 Recent Searches:</strong></label
+              >
+              <div class="d-flex flex-wrap gap-2">
+                {% for search in search_history %}
+                <span
+                  class="badge bg-secondary history-entry"
+                  role="button"
+                  data-ingredients="{{ search.ingredients }}"
+                >
+                  {{ search.ingredients|truncatechars:25 }}
+                </span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
             <button type="submit" class="btn btn-success w-100">
               <strong>🪄 Generate Recipes</strong>
             </button>

@@ -18,9 +18,9 @@
         <img
           src="{{ recipe.image_url }}"
           alt="{{ recipe.title }}"
-          class="card-img-top recipe-image d-none"
+          class="card-img-top recipe-image"
           onload="
-            this.classList.remove('d-none');
+            this.classList.add('loaded');
             const spinner = this.closest('.recipe-image-wrapper').querySelector('.image-loading');
             if (spinner) spinner.classList.add('d-none');
           "
@@ -49,6 +49,18 @@
             <li>{{ step }}</li>
             {% endfor %}
           </ol>
+        </div>
+        <div class="recipe-actions mt-auto d-flex justify-content-around pt-3">
+          <button
+            class="btn btn-primary btn-sm save-recipe-btn flex-grow-1 mx-1"
+          >
+            Save Recipe
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm share-community-btn flex-grow-1 mx-1"
+          >
+            Share to Community
+          </button>
         </div>
       </div>
     </div>
