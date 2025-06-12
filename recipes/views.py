@@ -128,9 +128,6 @@ def index(request):
         ingredients = request.POST.get("ingredients", "").strip()
         print(ingredients)
 
-        if not ingredients:
-            return HttpResponseRedirect(reverse("index"))
-
         # Collect filters
         filters_selected = {f: (f in request.POST) for f in FILTER_PHRASES.keys()}
         print(filters_selected)
@@ -138,7 +135,10 @@ def index(request):
         # Number of recipes to generate
         num_recipes = request.POST.get("num_recipes", "").strip()
 
-        prompt = f"I have these ingredients: {ingredients}. Give me {num_recipes} recipes I can make using the ingredients I have. "
+        if ingredients:
+            prompt = f"I have these ingredients: {ingredients}. Give me {num_recipes} recipes I can make using the ingredients I have. "
+        else:
+            prompt = f"I want you to generated {num_recipes} random recipes. "
 
         selected_filters = [
             FILTER_PHRASES[name]
@@ -147,7 +147,7 @@ def index(request):
         ]
         print(selected_filters)
         if selected_filters:
-            prompt += f"Also apply these preferences: {', '.join(selected_filters)}. "
+            prompt += f"Apply these preferences: {', '.join(selected_filters)}. "
 
         prompt += (
             f"Your response should be ONLY a single valid JSON array containing exactly {num_recipes} objects. "

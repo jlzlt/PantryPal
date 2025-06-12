@@ -199,7 +199,7 @@ document.addEventListener("DOMContentLoaded", function () {
         selectedSuggestionIndex >= 0 &&
         selectedSuggestionIndex < items.length
       ) {
-        e.preventDefault(); // prevent form submit or blur
+        e.preventDefault();
 
         const selected = items[selectedSuggestionIndex];
         input.value = selected.textContent;
@@ -300,23 +300,23 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // Show validation error if no valid input
-    if (!hasValid) {
-      const lastInputGroup = ingredientList.querySelector(
-        ".input-group:last-child"
-      );
-      const input = lastInputGroup.querySelector(".ingredient-input");
+    // // Show validation error if no valid input
+    // if (!hasValid) {
+    //   const lastInputGroup = ingredientList.querySelector(
+    //     ".input-group:last-child"
+    //   );
+    //   const input = lastInputGroup.querySelector(".ingredient-input");
 
-      input.classList.add("is-invalid");
+    //   input.classList.add("is-invalid");
 
-      const errorMsg = document.createElement("div");
-      errorMsg.className = "invalid-feedback";
-      errorMsg.textContent =
-        "Please enter at least one ingredient before submitting.";
+    //   const errorMsg = document.createElement("div");
+    //   errorMsg.className = "invalid-feedback";
+    //   errorMsg.textContent =
+    //     "Please enter at least one ingredient before submitting.";
 
-      input.parentElement.appendChild(errorMsg);
-      return;
-    }
+    //   input.parentElement.appendChild(errorMsg);
+    //   return;
+    // }
 
     // Show spinner and hide results while loading
     spinner.style.display = "block";

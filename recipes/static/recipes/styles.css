@@ -169,3 +169,8 @@ body {
 .save-recipe-form {
   margin-top: auto;
 }
+
+.or-tag {
+  text-align: center;
+  margin: 1rem;
+}
