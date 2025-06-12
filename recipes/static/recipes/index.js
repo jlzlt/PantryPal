@@ -1,16 +1,4 @@
-function getCSRFToken() {
-  const cookieName = "csrftoken";
-  const cookies = document.cookie.split(";");
-  for (let cookie of cookies) {
-    cookie = cookie.trim();
-    if (cookie.startsWith(cookieName + "=")) {
-      return decodeURIComponent(cookie.substring(cookieName.length + 1));
-    }
-  }
-  // Fallback to hidden form input
-  const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
-  return csrfInput ? csrfInput.value : null;
-}
+import { getCSRFToken } from "./utils.js";
 
 document.addEventListener("DOMContentLoaded", function () {
   const ingredientList = document.getElementById("ingredient-list");

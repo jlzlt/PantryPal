@@ -174,3 +174,7 @@ body {
   text-align: center;
   margin: 1rem;
 }
+
+.object-fit-cover {
+  object-fit: cover;
+}

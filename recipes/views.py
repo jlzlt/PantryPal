@@ -301,8 +301,11 @@ def about(request):
     pass
 
 
+@login_required
 def saved(request):
-    pass
+    saved_recipes = SavedRecipe.objects.filter(user=request.user)
+
+    return render(request, "recipes/saved.html", {"saved_recipes": saved_recipes})
 
 
 def generate_recipe_hash(recipe):
@@ -325,18 +328,68 @@ def save_recipe(request):
     recipe_hash = request.POST.get("hash")
 
     try:
-        ingredients = ast.literal_eval(request.POST.get("ingredients", "[]"))
-        instructions = ast.literal_eval(request.POST.get("instructions", "[]"))
-        tags = ast.literal_eval(request.POST.get("tags", "[]"))
+        # Try to parse ingredients
+        ingredients_str = request.POST.get("ingredients", "[]")
+        try:
+            ingredients = ast.literal_eval(ingredients_str)
+            print("Ingredients parsed with ast.literal_eval")
+        except (ValueError, SyntaxError):
+            # If literal_eval fails, try to parse as JSON
+            try:
+                ingredients = json.loads(ingredients_str)
+                print("Ingredients parsed with json.loads")
+            except json.JSONDecodeError:
+                # If both fail, try to split by commas and clean up
+                ingredients = [
+                    i.strip()
+                    for i in ingredients_str.strip("[]").split(",")
+                    if i.strip()
+                ]
+                print("Ingredients parsed with string splitting")
 
+        # Try to parse instructions
+        instructions_str = request.POST.get("instructions", "[]")
+        try:
+            instructions = ast.literal_eval(instructions_str)
+            print("Instructions parsed with ast.literal_eval")
+        except (ValueError, SyntaxError):
+            try:
+                instructions = json.loads(instructions_str)
+                print("Instructions parsed with json.loads")
+            except json.JSONDecodeError:
+                instructions = [
+                    i.strip()
+                    for i in instructions_str.strip("[]").split(",")
+                    if i.strip()
+                ]
+                print("Instructions parsed with string splitting")
+
+        # Try to parse tags
+        tags_str = request.POST.get("tags", "[]")
+        try:
+            tags = ast.literal_eval(tags_str)
+            print("Tags parsed with ast.literal_eval")
+        except (ValueError, SyntaxError):
+            try:
+                tags = json.loads(tags_str)
+                print("Tags parsed with json.loads")
+            except json.JSONDecodeError:
+                tags = [i.strip() for i in tags_str.strip("[]").split(",") if i.strip()]
+                print("Tags parsed with string splitting")
+
+        # Validate that we have lists
         if not isinstance(ingredients, list):
-            raise ValueError("Ingredients must be a list")
+            ingredients = [ingredients] if ingredients else []
+            print("! Converted single ingredient to list")
         if not isinstance(instructions, list):
-            raise ValueError("Instructions must be a list")
+            instructions = [instructions] if instructions else []
+            print("! Converted single instruction to list")
         if not isinstance(tags, list):
-            raise ValueError("Tags must be a list")
+            tags = [tags] if tags else []
+            print("! Converted single tag to list")
 
-    except (ValueError, SyntaxError) as e:
+    except Exception as e:
+        print("Error parsing recipe data:", e)
         ingredients = []
         instructions = []
         tags = []
