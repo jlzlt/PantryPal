@@ -1,13 +1,15 @@
 function getCSRFToken() {
-  const name = "csrftoken";
+  const cookieName = "csrftoken";
   const cookies = document.cookie.split(";");
   for (let cookie of cookies) {
     cookie = cookie.trim();
-    if (cookie.startsWith(name + "=")) {
-      return decodeURIComponent(cookie.substring(name.length + 1));
+    if (cookie.startsWith(cookieName + "=")) {
+      return decodeURIComponent(cookie.substring(cookieName.length + 1));
     }
   }
-  return null;
+  // Fallback to hidden form input
+  const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+  return csrfInput ? csrfInput.value : null;
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -192,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
       selectedSuggestionIndex =
         (selectedSuggestionIndex - 1 + items.length) % items.length;
       updateSuggestionHighlight(items);
-    } else if (e.key === "Enter" || e.key === "Tab") {
+    } else if (e.key === "Enter") {
       if (
         selectedSuggestionIndex >= 0 &&
         selectedSuggestionIndex < items.length
@@ -206,7 +208,7 @@ document.addEventListener("DOMContentLoaded", function () {
         suggestionsBox.innerHTML = "";
         suggestionsBox.style.display = "none";
         selectedSuggestionIndex = -1;
-      } else if (e.key === "Enter") {
+      } else {
         // No highlighted suggestion, Enter should add ingredient
         e.preventDefault();
         const addBtn = input.parentElement.querySelector(".add-ingredient");
@@ -218,7 +220,38 @@ document.addEventListener("DOMContentLoaded", function () {
       suggestionsBox.innerHTML = "";
       suggestionsBox.style.display = "none";
       selectedSuggestionIndex = -1;
+    } else if (e.key == "Tab") {
+      e.preventDefault();
+      selectedSuggestionIndex = (selectedSuggestionIndex + 1) % items.length;
+      updateSuggestionHighlight(items);
     }
+  });
+
+  document.addEventListener("click", function (e) {
+    // Find all visible suggestions boxes
+    const allSuggestionsBoxes = document.querySelectorAll(".suggestions-list");
+
+    allSuggestionsBoxes.forEach((suggestionsBox) => {
+      // Only process if the suggestions box is currently visible
+      if (suggestionsBox.style.display === "block") {
+        const container = suggestionsBox.closest(".input-group");
+
+        // Check if clicked outside the container (input + suggestions)
+        if (container && !container.contains(e.target)) {
+          suggestionsBox.innerHTML = "";
+          suggestionsBox.style.display = "none";
+          selectedSuggestionIndex = -1;
+
+          // Clear the input's invalid state if present
+          const input = container.querySelector(".ingredient-input");
+          if (input) {
+            input.classList.remove("is-invalid");
+            const errorMsg = container.querySelector(".invalid-feedback");
+            if (errorMsg) errorMsg.remove();
+          }
+        }
+      }
+    });
   });
 
   function updateSuggestionHighlight(items) {
