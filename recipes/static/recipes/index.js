@@ -288,24 +288,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // // Show validation error if no valid input
-    // if (!hasValid) {
-    //   const lastInputGroup = ingredientList.querySelector(
-    //     ".input-group:last-child"
-    //   );
-    //   const input = lastInputGroup.querySelector(".ingredient-input");
-
-    //   input.classList.add("is-invalid");
-
-    //   const errorMsg = document.createElement("div");
-    //   errorMsg.className = "invalid-feedback";
-    //   errorMsg.textContent =
-    //     "Please enter at least one ingredient before submitting.";
-
-    //   input.parentElement.appendChild(errorMsg);
-    //   return;
-    // }
-
     // Show spinner and hide results while loading
     spinner.style.display = "block";
     recipeContainer.style.display = "none";
@@ -316,11 +298,13 @@ document.addEventListener("DOMContentLoaded", function () {
       method: "POST",
       headers: {
         "X-Requested-With": "XMLHttpRequest",
+        "X-CSRFToken": getCSRFToken(),
       },
       body: formData,
     })
       .then((res) => res.json())
       .then((data) => {
+        console.log("Server response:", data);
         recipeContainer.innerHTML = data.html;
 
         // Hide spinner, show updated results
@@ -355,7 +339,11 @@ document.addEventListener("DOMContentLoaded", function () {
       buttonText.classList.add("d-none");
 
       if (isSaved) {
-        // Remove recipe
+        // Remove saved recipe
+        const recipeHash = saveForm.querySelector(
+          'input[name="recipe_hash"]'
+        ).value;
+
         fetch("/remove_saved_recipe/", {
           method: "POST",
           headers: {
@@ -363,9 +351,7 @@ document.addEventListener("DOMContentLoaded", function () {
             "X-CSRFToken": getCSRFToken(),
             "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: `hash=${encodeURIComponent(
-            saveForm.querySelector('input[name="hash"]').value
-          )}`,
+          body: `recipe_hash=${encodeURIComponent(recipeHash)}`,
         })
           .then((res) => res.json())
           .then((data) => {
@@ -389,15 +375,18 @@ document.addEventListener("DOMContentLoaded", function () {
           });
       } else {
         // Save recipe
-        const formData = new FormData(saveForm);
+        const recipeHash = saveForm.querySelector(
+          'input[name="recipe_hash"]'
+        ).value;
 
         fetch(saveForm.action, {
           method: "POST",
           headers: {
             "X-Requested-With": "XMLHttpRequest",
             "X-CSRFToken": getCSRFToken(),
+            "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: formData,
+          body: `recipe_hash=${encodeURIComponent(recipeHash)}`,
         })
           .then((res) => res.json())
           .then((data) => {

@@ -54,29 +54,10 @@
         <form
           method="POST"
           action="{% url 'save_recipe' %}"
-          enctype="multipart/form-data"
           class="w-100 d-flex justify-content-center save-recipe-form"
         >
           {% csrf_token %}
-          <input type="hidden" name="hash" value="{{ recipe.hash }}" />
-          <input type="hidden" name="title" value="{{ recipe.title }}" />
-          <input
-            type="hidden"
-            name="ingredients"
-            value="{{ recipe.ingredients }}"
-          />
-          <input
-            type="hidden"
-            name="instructions"
-            value="{{ recipe.instructions }}"
-          />
-          <input type="hidden" name="tags" value="{{ recipe.filters }}" />
-          <input
-            type="hidden"
-            name="image_url"
-            value="{{ recipe.image_url }}"
-          />
-
+          <input type="hidden" name="recipe_hash" value="{{ recipe.hash }}" />
           <button
             type="submit"
             class="btn btn-outline-success btn-sm w-100"

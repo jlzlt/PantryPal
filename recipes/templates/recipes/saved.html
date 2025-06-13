@@ -2,7 +2,7 @@
 Recipes{% endblock %} {% block body %} {% if saved_recipes %}
 <div id="saved-recipe-results">
   <div class="accordion" id="savedRecipesAccordion">
-    {% for recipe in saved_recipes %}
+    {% for saved_recipe in saved_recipes %}
     <div class="accordion-item">
       <h2 class="accordion-header" id="heading{{ forloop.counter }}">
         <button
@@ -14,11 +14,11 @@ Recipes{% endblock %} {% block body %} {% if saved_recipes %}
           aria-controls="collapse{{ forloop.counter }}"
         >
           <div class="d-flex align-items-center w-100">
-            {% if recipe.image %}
+            {% if saved_recipe.recipe.image %}
             <div class="flex-shrink-0 me-3" style="width: 80px; height: 80px">
               <img
-                src="{{ recipe.image.url }}"
-                alt="{{ recipe.title }}"
+                src="{{ saved_recipe.recipe.image.url }}"
+                alt="{{ saved_recipe.recipe.title }}"
                 class="w-100 h-100 object-fit-cover rounded"
               />
             </div>
@@ -31,7 +31,7 @@ Recipes{% endblock %} {% block body %} {% if saved_recipes %}
             </div>
             {% endif %}
             <div class="flex-grow-1">
-              <h5 class="mb-0">{{ recipe.title }}</h5>
+              <h5 class="mb-0">{{ saved_recipe.recipe.title }}</h5>
             </div>
           </div>
         </button>
@@ -46,7 +46,7 @@ Recipes{% endblock %} {% block body %} {% if saved_recipes %}
             <div class="flex-fill" style="min-width: 200px">
               <strong>Ingredients:</strong>
               <ul class="mb-2">
-                {% for ingredient in recipe.ingredients %}
+                {% for ingredient in saved_recipe.recipe.ingredients %}
                 <li>{{ ingredient }}</li>
                 {% endfor %}
               </ul>
@@ -55,7 +55,7 @@ Recipes{% endblock %} {% block body %} {% if saved_recipes %}
             <div class="flex-fill" style="min-width: 200px">
               <strong>Instructions:</strong>
               <ol class="mb-0">
-                {% for step in recipe.instructions %}
+                {% for step in saved_recipe.recipe.instructions %}
                 <li>{{ step }}</li>
                 {% endfor %}
               </ol>
@@ -69,20 +69,11 @@ Recipes{% endblock %} {% block body %} {% if saved_recipes %}
             class="mt-auto save-recipe-form"
           >
             {% csrf_token %}
-            <input type="hidden" name="hash" value="{{ recipe.hash }}" />
-            <input type="hidden" name="title" value="{{ recipe.title }}" />
             <input
               type="hidden"
-              name="ingredients"
-              value="{{ recipe.ingredients }}"
+              name="recipe_hash"
+              value="{{ saved_recipe.recipe.hash }}"
             />
-            <input
-              type="hidden"
-              name="instructions"
-              value="{{ recipe.instructions }}"
-            />
-            <input type="hidden" name="tags" value="{{ recipe.filters }}" />
-            <input type="hidden" name="image_url" value="{{ recipe.image }}" />
             <button
               type="submit"
               class="btn btn-outline-success btn-sm w-100"
@@ -101,41 +92,6 @@ Recipes{% endblock %} {% block body %} {% if saved_recipes %}
         </div>
       </div>
     </div>
-
-    {% if recipe.image %}
-    <!-- Image Modal -->
-    <div
-      class="modal fade"
-      id="imageModal{{ forloop.counter }}"
-      tabindex="-1"
-      aria-labelledby="imageModalLabel{{ forloop.counter }}"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="imageModalLabel{{ forloop.counter }}">
-              {{ recipe.title }}
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body p-0">
-            <img
-              src="{{ recipe.image.url }}"
-              alt="{{ recipe.title }}"
-              class="img-fluid w-100"
-              style="max-height: 80vh; object-fit: contain;"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-    {% endif %}
     {% endfor %}
   </div>
 </div>

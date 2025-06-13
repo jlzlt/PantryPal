@@ -5,10 +5,10 @@ from django.core.files.base import ContentFile
 from django.http import JsonResponse, HttpResponseRedirect
 from django.db import IntegrityError, transaction
 from django.views.decorators.http import require_GET, require_POST
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
-from .models import User, SavedRecipe, SharedRecipe, RecipeComment, RecipeVote
+from .models import User, GeneratedRecipe, Recipe, SavedRecipe
 from openai import OpenAI
 from .constants import (
     GROQ_API_KEY,
@@ -177,15 +177,27 @@ def index(request):
             ]
         else:
             for recipe in recipes:
+                # Generate image URL
                 prompt_img = f"A high quality photo of {recipe['title']} dish, appetizing and well-lit"
-                image_url = generate_image(prompt_img)
+                image_url = (
+                    generate_image(prompt_img) or "/static/default_recipe_img.png"
+                )
 
-                # Assign Pollinations image URL (no need to download or save)
-                recipe["image_url"] = image_url or "/static/default_recipe_img.png"
+                recipe_hash = generate_recipe_hash(recipe)
 
-                # Generate and attach hash to recipe
-                recipe["hash"] = generate_recipe_hash(recipe)
+                # Save to GeneratedRecipe model
+                GeneratedRecipe.objects.create(
+                    user=request.user,
+                    title=recipe["title"],
+                    ingredients=recipe["ingredients"],
+                    instructions=recipe["instructions"],
+                    tags=selected_filters,
+                    image_url=image_url,
+                    hash=recipe_hash,
+                )
 
+                recipe["hash"] = recipe_hash
+                recipe["image_url"] = image_url
                 recipe["filters"] = selected_filters
 
     # AJAX response (for JavaScript fetch)
@@ -323,139 +335,76 @@ def generate_recipe_hash(recipe):
 @login_required
 @require_POST
 def save_recipe(request):
-    title = request.POST.get("title")
-    image_url = request.POST.get("image_url")
-    recipe_hash = request.POST.get("hash")
+    recipe_hash = request.POST.get("recipe_hash").strip()
+
+    if not recipe_hash:
+        return JsonResponse(
+            {"status": "error", "message": "No recipe hash provided."}, status=400
+        )
+
+    gen_recipe = get_object_or_404(GeneratedRecipe, hash=recipe_hash, user=request.user)
 
     try:
-        # Try to parse ingredients
-        ingredients_str = request.POST.get("ingredients", "[]")
-        try:
-            ingredients = ast.literal_eval(ingredients_str)
-            print("Ingredients parsed with ast.literal_eval")
-        except (ValueError, SyntaxError):
-            # If literal_eval fails, try to parse as JSON
-            try:
-                ingredients = json.loads(ingredients_str)
-                print("Ingredients parsed with json.loads")
-            except json.JSONDecodeError:
-                # If both fail, try to split by commas and clean up
-                ingredients = [
-                    i.strip()
-                    for i in ingredients_str.strip("[]").split(",")
-                    if i.strip()
-                ]
-                print("Ingredients parsed with string splitting")
+        with transaction.atomic():
+            # Check if an identical recipe already exists
+            recipe = Recipe.objects.filter(hash=recipe_hash).first()
 
-        # Try to parse instructions
-        instructions_str = request.POST.get("instructions", "[]")
-        try:
-            instructions = ast.literal_eval(instructions_str)
-            print("Instructions parsed with ast.literal_eval")
-        except (ValueError, SyntaxError):
-            try:
-                instructions = json.loads(instructions_str)
-                print("Instructions parsed with json.loads")
-            except json.JSONDecodeError:
-                instructions = [
-                    i.strip()
-                    for i in instructions_str.strip("[]").split(",")
-                    if i.strip()
-                ]
-                print("Instructions parsed with string splitting")
+            if not recipe:
+                # Download image
+                image_file = None
+                if gen_recipe.image_url:
+                    try:
+                        response = requests.get(gen_recipe.image_url, timeout=10)
+                        response.raise_for_status()
+                        image_file = ContentFile(
+                            response.content, name=f"{gen_recipe.hash}.jpg"
+                        )
+                    except requests.RequestException:
+                        print("Could not download image.")
 
-        # Try to parse tags
-        tags_str = request.POST.get("tags", "[]")
-        try:
-            tags = ast.literal_eval(tags_str)
-            print("Tags parsed with ast.literal_eval")
-        except (ValueError, SyntaxError):
-            try:
-                tags = json.loads(tags_str)
-                print("Tags parsed with json.loads")
-            except json.JSONDecodeError:
-                tags = [i.strip() for i in tags_str.strip("[]").split(",") if i.strip()]
-                print("Tags parsed with string splitting")
+                recipe = Recipe.objects.create(
+                    title=gen_recipe.title,
+                    ingredients=gen_recipe.ingredients,
+                    instructions=gen_recipe.instructions,
+                    tags=gen_recipe.tags,
+                    image=image_file,
+                    hash=recipe_hash,
+                )
 
-        # Validate that we have lists
-        if not isinstance(ingredients, list):
-            ingredients = [ingredients] if ingredients else []
-            print("! Converted single ingredient to list")
-        if not isinstance(instructions, list):
-            instructions = [instructions] if instructions else []
-            print("! Converted single instruction to list")
-        if not isinstance(tags, list):
-            tags = [tags] if tags else []
-            print("! Converted single tag to list")
+            # Save the recipe for the user (won’t duplicate due to `unique_together`)
+            saved, created = SavedRecipe.objects.get_or_create(
+                user=request.user, recipe=recipe
+            )
+
+            if not created:
+                return JsonResponse(
+                    {"status": "exists", "message": "Recipe already saved."}
+                )
 
     except Exception as e:
-        print("Error parsing recipe data:", e)
-        ingredients = []
-        instructions = []
-        tags = []
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
-    if not all([title, recipe_hash, ingredients, instructions]):
-        return JsonResponse(
-            {"status": "error", "message": "Missing required fields"}, status=400
-        )
-
-    # Check for duplicate
-    if SavedRecipe.objects.filter(user=request.user, hash=recipe_hash).exists():
-        return JsonResponse(
-            {
-                "status": "exists",
-                "message": "Recipe already saved.",
-                "hash": recipe_hash,
-            }
-        )
-
-    # Download and save the image file
-    image_file = None
-    if image_url:
-        try:
-            response = requests.get(image_url, timeout=5)
-            response.raise_for_status()
-            image_file = ContentFile(response.content, name=f"{recipe_hash}.jpg")
-        except requests.RequestException:
-            pass
-
-    # Save recipe
-    with transaction.atomic():
-        SavedRecipe.objects.create(
-            user=request.user,
-            title=title,
-            ingredients=ingredients,
-            instructions=instructions,
-            tags=tags,
-            hash=recipe_hash,
-            image=image_file,
-        )
-
-    return JsonResponse(
-        {
-            "status": "saved",
-            "message": "Recipe saved successfully.",
-            "hash": recipe_hash,
-        }
-    )
+    return JsonResponse({"status": "saved", "message": "Recipe saved successfully."})
 
 
 @login_required
 @require_POST
 def remove_saved_recipe(request):
-    recipe_hash = request.POST.get("hash")
+    recipe_hash = request.POST.get("recipe_hash")
     if not recipe_hash:
         return JsonResponse(
-            {"status": "error", "message": "Missing recipe hash"}, status=400
+            {"status": "error", "message": "Missing recipe hash."}, status=400
         )
 
     try:
-        saved_recipe = SavedRecipe.objects.get(user=request.user, hash=recipe_hash)
+        saved_recipe = SavedRecipe.objects.get(
+            user=request.user, recipe__hash=recipe_hash
+        )
         saved_recipe.delete()
         return JsonResponse(
             {"status": "removed", "message": "Recipe removed from saved"}
         )
     except SavedRecipe.DoesNotExist:
         return JsonResponse(
-            {"status": "error", "message": "Recipe not found"}, status=404
+            {"status": "error", "message": "Saved recipe not found"}, status=404
         )

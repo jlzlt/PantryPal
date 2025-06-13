@@ -11,10 +11,20 @@ document.addEventListener("DOMContentLoaded", function () {
       const saveButton = saveForm.querySelector("button[type='submit']");
       if (!saveButton) return;
 
+      const buttonText = saveButton.querySelector(".button-text");
+      const spinner = saveButton.querySelector(".spinner-border");
       const isSaved = saveButton.dataset.saved === "true";
 
+      saveButton.disabled = true;
+      spinner.classList.remove("d-none");
+      buttonText.classList.add("d-none");
+
       if (isSaved) {
-        // Call remove API
+        // Remove saved recipe
+        const recipeHash = saveForm.querySelector(
+          'input[name="recipe_hash"]'
+        ).value;
+
         fetch("/remove_saved_recipe/", {
           method: "POST",
           headers: {
@@ -22,25 +32,33 @@ document.addEventListener("DOMContentLoaded", function () {
             "X-CSRFToken": getCSRFToken(),
             "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: `hash=${encodeURIComponent(
-            saveForm.querySelector('input[name="hash"]').value
-          )}`,
+          body: `recipe_hash=${encodeURIComponent(recipeHash)}`,
         })
           .then((res) => res.json())
           .then((data) => {
+            spinner.classList.add("d-none");
+            buttonText.classList.remove("d-none");
+            saveButton.disabled = false;
+
             if (data.status === "removed") {
-              saveButton.textContent = "Save Recipe";
+              saveButton.textContent = "💾 Save Recipe";
               saveButton.dataset.saved = "false";
             } else {
               alert(`Error: ${data.message}`);
             }
           })
           .catch((err) => {
+            spinner.classList.add("d-none");
+            buttonText.classList.remove("d-none");
+            saveButton.disabled = false;
             console.error("Error removing recipe:", err);
             alert("Failed to remove saved recipe.");
           });
       } else {
-        const formData = new FormData(saveForm);
+        // Save recipe
+        const recipeHash = saveForm.querySelector(
+          'input[name="recipe_hash"]'
+        ).value;
 
         fetch(saveForm.action, {
           method: "POST",
@@ -48,27 +66,21 @@ document.addEventListener("DOMContentLoaded", function () {
             "X-Requested-With": "XMLHttpRequest",
             "X-CSRFToken": getCSRFToken(),
           },
-          body: formData,
+          body: `recipe_hash=${encodeURIComponent(recipeHash)}`,
         })
           .then((res) => res.json())
           .then((data) => {
-            if (data.status === "saved") {
-              const saveButton = saveForm.querySelector(
-                "button[type='submit']"
-              );
-              if (saveButton) {
-                saveButton.textContent = "Remove from Saved";
-                saveButton.dataset.saved = "true";
+            spinner.classList.add("d-none");
+            buttonText.classList.remove("d-none");
+            saveButton.disabled = false;
+
+            if (data.status === "saved" || data.status === "exists") {
+              buttonText.textContent = "Remove from Saved";
+              saveButton.dataset.saved = "true";
+
+              if (data.status === "exists") {
+                alert(data.message);
               }
-            } else if (data.status === "exists") {
-              const saveButton = saveForm.querySelector(
-                "button[type='submit']"
-              );
-              if (saveButton) {
-                saveButton.textContent = "Remove from Saved";
-                saveButton.dataset.saved = "true";
-              }
-              alert(data.message);
             } else if (data.status === "error") {
               alert(`Error: ${data.message}`);
             } else {
@@ -76,6 +88,9 @@ document.addEventListener("DOMContentLoaded", function () {
             }
           })
           .catch((err) => {
+            spinner.classList.add("d-none");
+            buttonText.classList.remove("d-none");
+            saveButton.disabled = false;
             console.error("Error saving recipe:", err);
             alert("Failed to save recipe.");
           });
