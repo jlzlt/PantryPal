@@ -15,6 +15,7 @@
     />
     <link href="{% static 'recipes/styles.css' %}" rel="stylesheet" />
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon" />
+    {% block extra_css %}{% endblock %}
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light bg-opacity-50">

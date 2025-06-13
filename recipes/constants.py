@@ -22,6 +22,19 @@ FILTER_PHRASES = {
     "surprising": "Should be creative or surprising",
 }
 
+TAGS = {
+    "Quick": "quick",
+    "Easy": "easy_only",
+    "Kid-Friendly": "kid_friendly",
+    "No-Cook": "no_cook_only",
+    "Minimize Prep Time": "minimize_prep_time",
+    "Breakfast": "breakfast",
+    "Lunch": "lunch",
+    "Dinner": "dinner",
+    "Basic & Practical": "basic",
+    "Creative & Surprising": "surprising",
+}
+
 INGREDIENTS = []
 try:
     path = Path(__file__).resolve().parent / "ingredients.json"

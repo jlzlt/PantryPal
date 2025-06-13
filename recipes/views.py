@@ -17,6 +17,7 @@ from .constants import (
     INGREDIENTS,
     FILTER_PHRASES,
     EXAMPLE_RECIPE,
+    TAGS,
 )
 import json
 import re
@@ -315,9 +316,46 @@ def about(request):
 
 @login_required
 def saved(request):
-    saved_recipes = SavedRecipe.objects.filter(user=request.user)
+    saved_recipes_qs = SavedRecipe.objects.filter(user=request.user)
 
-    return render(request, "recipes/saved.html", {"saved_recipes": saved_recipes})
+    # Search
+    q = request.GET.get('q', '').strip()
+    if q:
+        saved_recipes_qs = saved_recipes_qs.filter(
+            recipe__title__icontains=q
+        )
+
+    # Sort (apply to QuerySet before Python-side filtering)
+    sort = request.GET.get('sort', 'liked')
+    if sort == 'newest':
+        saved_recipes_qs = saved_recipes_qs.order_by('-recipe__created_at')
+    elif sort == 'oldest':
+        saved_recipes_qs = saved_recipes_qs.order_by('recipe__created_at')
+    else:  # Default: 'liked' (most recently saved)
+        saved_recipes_qs = saved_recipes_qs.order_by('-saved_at')
+
+    # Convert to list and filter by tag if needed
+    saved_recipes = list(saved_recipes_qs)
+
+    # Filter by tag (Python-side filtering)
+    active_filters = request.GET.getlist('filter') # Get all 'filter' parameters
+    if active_filters:
+        # Check if all active_filters are present in recipe.tags
+        saved_recipes = [
+            sr for sr in saved_recipes
+            if all(f in (sr.recipe.tags or []) for f in active_filters)
+        ]
+
+    return render(
+        request,
+        "recipes/saved.html",
+        {
+            "saved_recipes": saved_recipes,
+            "active_filters": active_filters, # This will be a list of strings
+            "sort": sort,
+            "TAGS": TAGS,
+        },
+    )
 
 
 def generate_recipe_hash(recipe):
@@ -371,7 +409,7 @@ def save_recipe(request):
                     hash=recipe_hash,
                 )
 
-            # Save the recipe for the user (won’t duplicate due to `unique_together`)
+            # Save the recipe for the user (won't duplicate due to `unique_together`)
             saved, created = SavedRecipe.objects.get_or_create(
                 user=request.user, recipe=recipe
             )
@@ -408,3 +446,8 @@ def remove_saved_recipe(request):
         return JsonResponse(
             {"status": "error", "message": "Saved recipe not found"}, status=404
         )
+
+
+def recipe_detail(request, recipe_id):
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+    return render(request, "recipes/recipe_detail.html", {"recipe": recipe})
