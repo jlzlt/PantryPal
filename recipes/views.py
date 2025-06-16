@@ -8,6 +8,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.core.paginator import Paginator
 from .models import User, GeneratedRecipe, Recipe, SavedRecipe, SharedRecipe
 from openai import OpenAI
 from .constants import (
@@ -349,17 +350,48 @@ def saved(request):
             if all(f in (sr.recipe.tags or []) for f in active_filters)
         ]
 
+    # Pagination for infinite scroll
+    page = request.GET.get('page', 1)
+    try:
+        page = int(page)
+    except (TypeError, ValueError):
+        page = 1
+
+    items_per_page = 12
+    start_idx = (page - 1) * items_per_page
+    end_idx = start_idx + items_per_page
+    has_more = end_idx < len(saved_recipes)
+    
+    # Get the current page of recipes
+    current_page_recipes = saved_recipes[start_idx:end_idx]
+
     shared_recipe_ids = set(SharedRecipe.objects.values_list("recipe_id", flat=True))
+
+    # If it's an AJAX request, return only the recipe cards HTML
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        html = render_to_string(
+            'recipes/partials/saved_recipe_cards.html',
+            {
+                'saved_recipes': current_page_recipes,
+                'shared_recipe_ids': shared_recipe_ids,
+            },
+            request=request
+        )
+        return JsonResponse({
+            'html': html,
+            'has_more': has_more
+        })
 
     return render(
         request,
         "recipes/saved.html",
         {
-            "saved_recipes": saved_recipes,
-            "active_filters": active_filters,  # This will be a list of strings
+            "saved_recipes": current_page_recipes,
+            "active_filters": active_filters,
             "sort": sort,
             "TAGS": TAGS,
             "shared_recipe_ids": shared_recipe_ids,
+            "has_more": has_more,
         },
     )
 

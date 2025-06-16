@@ -79,79 +79,15 @@
   <div id="saved-recipe-results">
     {% if saved_recipes %}
     <div class="row g-4">
-      {% for saved_recipe in saved_recipes %}
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="card recipe-card h-100 shadow-sm">
-          {% if saved_recipe.recipe.image %}
-          <img
-            src="{{ saved_recipe.recipe.image.url }}"
-            class="card-img-top recipe-img"
-            alt="{{ saved_recipe.recipe.title }}"
-          />
-          {% else %}
-          <div
-            class="card-img-top recipe-img no-image d-flex align-items-center justify-content-center text-muted"
-          >
-            <span>No Image</span>
-          </div>
-          {% endif %}
-          <div class="card-body d-flex flex-column">
-            <h5 class="card-title mb-2">{{ saved_recipe.recipe.title }}</h5>
-            {% if saved_recipe.recipe.id in shared_recipe_ids %}
-            <div class="mb-2 d-flex align-items-center">
-              <!-- prettier-ignore -->
-              {% with rating=saved_recipe.recipe.rating|default:4.5 %}
-                {% for i in "12345" %}
-                  {% if rating|floatval >= i %}
-              <span class="star">&#9733;</span>
-              {% elif rating|floatval >= i|add:"-0.5" %}
-              <span class="star half-star">&#9733;</span>
-              {% else %}
-              <span class="star star-empty">&#9733;</span>
-              {% endif %} {% endfor %} {% endwith %}
-            </div>
-            <!-- prettier-ignore-end -->
-            {% endif %}
-            <div class="mt-auto d-flex gap-2">
-              <a
-                href="{% url 'recipe_details' saved_recipe.recipe.id %}"
-                class="btn view-btn flex-fill"
-                >View</a
-              >
-              <form
-                method="POST"
-                action="{% url 'save_recipe' %}"
-                class="flex-fill save-recipe-form"
-                enctype="multipart/form-data"
-              >
-                {% csrf_token %}
-                <input
-                  type="hidden"
-                  name="recipe_hash"
-                  value="{{ saved_recipe.recipe.hash }}"
-                />
-                <button
-                  type="submit"
-                  class="btn remove-btn w-100"
-                  data-saved="true"
-                >
-                  <span class="button-text">Remove</span>
-                  <span
-                    class="spinner-border spinner-border-sm d-none"
-                    role="status"
-                    aria-hidden="true"
-                  ></span>
-                </button>
-              </form>
-            </div>
-            <div class="saved-timestamp">
-              Saved {{ saved_recipe.saved_at|date:"M d, Y" }}
-            </div>
-          </div>
-        </div>
-      </div>
-      {% endfor %}
+      {% include "recipes/partials/saved_recipe_cards.html" %}
     </div>
+    {% if has_more %}
+    <div class="text-center py-4 loading-spinner d-none">
+      <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading more recipes...</span>
+      </div>
+    </div>
+    {% endif %}
     {% else %}
     <div class="text-center py-5">
       {% if request.GET.q or active_filters %}
@@ -168,15 +104,11 @@
   <div id="remove-confirm-modal" class="custom-modal-backdrop d-none">
     <div class="custom-modal">
       <div class="custom-modal-content">
-        <h5>Remove Recipe?</h5>
-        <p>Are you sure you want to remove this recipe from your saved list?</p>
-        <div class="d-flex gap-3 justify-content-end mt-4">
-          <button class="btn btn-filter" id="cancel-remove-btn" type="button">
-            Cancel
-          </button>
-          <button class="btn remove-btn" id="confirm-remove-btn" type="button">
-            Remove
-          </button>
+        <h5>Remove Recipe</h5>
+        <p>Are you sure you want to remove this recipe from your saved recipes?</p>
+        <div class="d-flex justify-content-end gap-2">
+          <button id="cancel-remove-btn" class="btn btn-secondary">Cancel</button>
+          <button id="confirm-remove-btn" class="btn btn-danger">Remove</button>
         </div>
       </div>
     </div>
