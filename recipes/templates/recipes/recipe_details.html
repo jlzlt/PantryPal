@@ -56,11 +56,18 @@
       </div>
     </div>
 
-    <div class="button-group">
-      <button class="edit-recipe-button">Edit</button>
-      <button class="share-button">Share</button>
-      <button class="back-button">Back to Saved</button>
-      <button class="remove-button">Remove</button>
+    <div class="button-group d-flex gap-2 justify-content-center">
+      <a href="{% url 'saved' %}" class="btn view-btn">Back to Saved</a>
+      <button class="btn view-btn">Edit</button>
+      <button class="btn view-btn">Share</button>
+      <form method="POST" action="{% url 'save_recipe' %}" class="save-recipe-form">
+        {% csrf_token %}
+        <input type="hidden" name="recipe_hash" value="{{ recipe.hash }}" />
+        <button type="submit" class="btn remove-btn" data-saved="true">
+          <span class="button-text">Remove</span>
+          <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+        </button>
+      </form>
     </div>
     <div class="saved-timestamp">
       Saved {{ saved_recipe.saved_at|date:"M d, Y" }}
@@ -72,22 +79,18 @@
 <div id="remove-confirm-modal" class="custom-modal-backdrop d-none">
   <div class="custom-modal">
     <div class="custom-modal-content">
-      <h5>Remove Recipe?</h5>
-      <p>Are you sure you want to remove this recipe from your saved list?</p>
-      <div class="d-flex gap-3 justify-content-end mt-4">
-        <button class="btn btn-filter" id="cancel-remove-btn" type="button">
-          Cancel
-        </button>
-        <button
-          class="remove-button"
-          data-recipe-hash="{{ recipe.recipe_hash }}"
-          type="button"
-        >
-          Remove
-        </button>
+      <h5>Remove Recipe</h5>
+      <p>Are you sure you want to remove this recipe from your saved recipes?</p>
+      <div class="d-flex justify-content-end gap-2">
+        <button id="cancel-remove-btn" class="btn btn-secondary">Cancel</button>
+        <button id="confirm-remove-btn" class="btn btn-danger">Remove</button>
       </div>
     </div>
   </div>
 </div>
 
-{% endblock %} {% block script %} {% endblock %}
+{% endblock %}
+
+{% block script %}
+<script type="module" src="{% static 'recipes/recipe_details.js' %}"></script>
+{% endblock %}

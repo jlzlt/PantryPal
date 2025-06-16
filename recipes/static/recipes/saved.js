@@ -59,14 +59,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Load more recipes via AJAX
+  // Load more recipes function
   async function loadMoreRecipes() {
-    if (isLoading || !hasMore) return;
-    
+    if (isLoading) return;
     isLoading = true;
-    currentPage++;
 
-    // Show loading spinner
     const loadingSpinner = document.querySelector('.loading-spinner');
     if (loadingSpinner) {
       loadingSpinner.classList.remove('d-none');
@@ -74,52 +71,43 @@ document.addEventListener("DOMContentLoaded", function () {
 
     try {
       const url = new URL(window.location.href);
-      url.searchParams.set('page', currentPage);
-      
-      const response = await fetch(url, {
+      url.searchParams.set('page', currentPage + 1);
+
+      const response = await fetch(url.toString(), {
         headers: {
           'X-Requested-With': 'XMLHttpRequest'
         }
       });
-      
-      if (!response.ok) throw new Error('Network response was not ok');
-      
+
       const data = await response.json();
-      
-      // Create a temporary container to parse the HTML
-      const tempContainer = document.createElement('div');
-      tempContainer.innerHTML = data.html;
-      
-      // Get all recipe cards from the temporary container
-      const recipeCards = tempContainer.querySelectorAll('.col-12');
-      
-      // Get the row element
-      const row = recipeContainer.querySelector('.row');
-      
-      // Append each recipe card to the row
-      recipeCards.forEach(card => {
-        row.appendChild(card);
-      });
-      
-      // Update hasMore flag
-      hasMore = data.has_more;
-      
-      // If no more recipes, remove scroll listener and hide spinner
-      if (!hasMore) {
-        window.removeEventListener('scroll', handleScroll);
-        if (loadingSpinner) {
-          loadingSpinner.remove();
+
+      if (data.html) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = data.html;
+        const newCards = tempDiv.querySelectorAll('.col-12');
+        
+        const recipeGrid = document.querySelector('.row.g-4');
+        if (recipeGrid) {
+          newCards.forEach(card => {
+            recipeGrid.appendChild(card);
+          });
         }
+
+        currentPage++;
+        hasMore = data.has_more;
       }
     } catch (error) {
       console.error('Error loading more recipes:', error);
     } finally {
       isLoading = false;
+      if (loadingSpinner) {
+        loadingSpinner.classList.add('d-none');
+      }
     }
   }
 
   // Add scroll event listener
-  window.addEventListener('scroll', handleScroll);
+  window.addEventListener("scroll", handleScroll);
 
   // Handle recipe removal
   recipeContainer.addEventListener("submit", (e) => {
@@ -148,13 +136,14 @@ document.addEventListener("DOMContentLoaded", function () {
       button.disabled = true;
 
       try {
-        const response = await fetch(form.action, {
+        const response = await fetch("/remove_saved_recipe/", {
           method: "POST",
-          body: new FormData(form),
           headers: {
             "X-CSRFToken": getCSRFToken(),
             "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/x-www-form-urlencoded",
           },
+          body: `recipe_hash=${encodeURIComponent(form.querySelector('input[name="recipe_hash"]').value)}`,
         });
 
         const data = await response.json();
@@ -165,9 +154,11 @@ document.addEventListener("DOMContentLoaded", function () {
           recipeCard.remove();
         } else {
           console.error("Error removing recipe:", data.message);
+          alert(`Error: ${data.message}`);
         }
       } catch (error) {
         console.error("Error:", error);
+        alert("Failed to remove recipe. Please try again.");
       } finally {
         // Hide modal
         modal.classList.add("d-none");
