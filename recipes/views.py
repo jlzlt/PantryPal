@@ -8,7 +8,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
-from .models import User, GeneratedRecipe, Recipe, SavedRecipe
+from .models import User, GeneratedRecipe, Recipe, SavedRecipe, SharedRecipe
 from openai import OpenAI
 from .constants import (
     GROQ_API_KEY,
@@ -141,6 +141,10 @@ def index(request):
         else:
             prompt = f"I want you to generated {num_recipes} random recipes. "
 
+        # Used for user-facing tags
+        selected_tag_keys = [key for key in TAGS.values() if key in request.POST]
+
+        # Used for AI prompt
         selected_filters = [
             FILTER_PHRASES[name]
             for name, selected in filters_selected.items()
@@ -192,7 +196,7 @@ def index(request):
                     title=recipe["title"],
                     ingredients=recipe["ingredients"],
                     instructions=recipe["instructions"],
-                    tags=selected_filters,
+                    tags=selected_tag_keys,
                     image_url=image_url,
                     hash=recipe_hash,
                 )
@@ -319,41 +323,43 @@ def saved(request):
     saved_recipes_qs = SavedRecipe.objects.filter(user=request.user)
 
     # Search
-    q = request.GET.get('q', '').strip()
+    q = request.GET.get("q", "").strip()
     if q:
-        saved_recipes_qs = saved_recipes_qs.filter(
-            recipe__title__icontains=q
-        )
+        saved_recipes_qs = saved_recipes_qs.filter(recipe__title__icontains=q)
 
     # Sort (apply to QuerySet before Python-side filtering)
-    sort = request.GET.get('sort', 'liked')
-    if sort == 'newest':
-        saved_recipes_qs = saved_recipes_qs.order_by('-recipe__created_at')
-    elif sort == 'oldest':
-        saved_recipes_qs = saved_recipes_qs.order_by('recipe__created_at')
+    sort = request.GET.get("sort", "liked")
+    if sort == "newest":
+        saved_recipes_qs = saved_recipes_qs.order_by("-recipe__created_at")
+    elif sort == "oldest":
+        saved_recipes_qs = saved_recipes_qs.order_by("recipe__created_at")
     else:  # Default: 'liked' (most recently saved)
-        saved_recipes_qs = saved_recipes_qs.order_by('-saved_at')
+        saved_recipes_qs = saved_recipes_qs.order_by("-saved_at")
 
     # Convert to list and filter by tag if needed
     saved_recipes = list(saved_recipes_qs)
 
     # Filter by tag (Python-side filtering)
-    active_filters = request.GET.getlist('filter') # Get all 'filter' parameters
+    active_filters = request.GET.getlist("filter")  # Get all 'filter' parameters
     if active_filters:
         # Check if all active_filters are present in recipe.tags
         saved_recipes = [
-            sr for sr in saved_recipes
+            sr
+            for sr in saved_recipes
             if all(f in (sr.recipe.tags or []) for f in active_filters)
         ]
+
+    shared_recipe_ids = set(SharedRecipe.objects.values_list("recipe_id", flat=True))
 
     return render(
         request,
         "recipes/saved.html",
         {
             "saved_recipes": saved_recipes,
-            "active_filters": active_filters, # This will be a list of strings
+            "active_filters": active_filters,  # This will be a list of strings
             "sort": sort,
             "TAGS": TAGS,
+            "shared_recipe_ids": shared_recipe_ids,
         },
     )
 
@@ -448,6 +454,29 @@ def remove_saved_recipe(request):
         )
 
 
-def recipe_detail(request, recipe_id):
+@login_required
+def recipe_details(request, recipe_id):
     recipe = get_object_or_404(Recipe, id=recipe_id)
-    return render(request, "recipes/recipe_detail.html", {"recipe": recipe})
+
+    # Reverse-map tag keys to user-facing names
+    tag_key_to_label = {v: k for k, v in TAGS.items()}
+    tag_labels = []
+
+    for tag in recipe.tags:  # adjust based on how you store tags
+        if tag in tag_key_to_label:
+            tag_labels.append(tag_key_to_label[tag])
+
+    shared_recipe = SharedRecipe.objects.filter(recipe__hash=recipe.hash).first()
+
+    saved_recipe = SavedRecipe.objects.filter(recipe__hash=recipe.hash).first()
+
+    return render(
+        request,
+        "recipes/recipe_details.html",
+        {
+            "recipe": recipe,
+            "tag_labels": tag_labels,
+            "shared_recipe": shared_recipe,
+            "saved_recipe": saved_recipe,
+        },
+    )

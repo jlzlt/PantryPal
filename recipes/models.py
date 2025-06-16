@@ -68,7 +68,7 @@ class SharedRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE, related_name="shared_versions"
     )
-    user = models.ForeignKey(
+    author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="shared_recipes"
     )
     user_comment = models.TextField(blank=True, null=True)
@@ -89,7 +89,7 @@ class SharedRecipe(models.Model):
 
 
 class RecipeComment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
     recipe = models.ForeignKey(
         SharedRecipe, on_delete=models.CASCADE, related_name="comments"
     )
@@ -101,7 +101,7 @@ class RecipeComment(models.Model):
 
 
 class RecipeRating(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rater = models.ForeignKey(User, on_delete=models.CASCADE)
     recipe = models.ForeignKey(
         SharedRecipe, on_delete=models.CASCADE, related_name="ratings"
     )
@@ -110,7 +110,7 @@ class RecipeRating(models.Model):
     )  # 1 to 5
 
     class Meta:
-        unique_together = ("user", "recipe")
+        unique_together = ("rater", "recipe")
 
     def __str__(self):
         return f"Rating {self.rating}/5 by {self.user} on {self.recipe}"

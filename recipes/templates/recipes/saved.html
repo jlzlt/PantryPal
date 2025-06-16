@@ -1,20 +1,62 @@
-{% extends "recipes/layout.html" %} {% load static %} {% load recipe_extras %} {% block title %}Saved Recipes{% endblock %} {% block body %}
+{% extends "recipes/layout.html" %} {% load static %} {% load recipe_extras %}
+{% block title %}Saved Recipes{% endblock %} {% block body %}
 <div class="container py-4 saved-recipes-container">
   <h1 class="mb-4 saved-title">Saved Recipes</h1>
-  <div class="d-flex flex-wrap align-items-center gap-3 mb-2 saved-controls-row">
+  <div
+    class="d-flex flex-wrap align-items-center gap-3 mb-2 saved-controls-row"
+  >
     <div class="d-flex flex-grow-1 align-items-center gap-2">
-      <form class="flex-grow-1 search-form position-relative mb-0" method="get" action="">
-        <input type="text" class="form-control search-bar pe-5" placeholder="Search recipes" name="q" value="{{ request.GET.q|default:'' }}" autocomplete="off">
+      <form
+        class="flex-grow-1 search-form position-relative mb-0"
+        method="get"
+        action=""
+      >
+        <input
+          type="text"
+          class="form-control search-bar pe-5"
+          placeholder="Search recipes"
+          name="q"
+          value="{{ request.GET.q|default:'' }}"
+          autocomplete="off"
+        />
         <button type="submit" class="search-btn-inside" aria-label="Search">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" stroke="#23423b" stroke-width="2"/><path d="M20 20L16.65 16.65" stroke="#23423b" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="11" cy="11" r="7" stroke="#23423b" stroke-width="2" />
+            <path
+              d="M20 20L16.65 16.65"
+              stroke="#23423b"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
         </button>
       </form>
       <form method="get" action="" class="mb-0 sort-form ms-2">
         <div class="custom-dropdown-wrapper">
-          <select class="form-select sort-dropdown" name="sort" onchange="this.form.submit()">
-            <option value="liked" {% if sort == 'liked' %}selected{% endif %}>Most Liked</option>
-            <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
-            <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest</option>
+          <select
+            class="form-select sort-dropdown"
+            name="sort"
+            onchange="this.form.submit()"
+          >
+            {% if sort == 'liked' %}
+            <option value="liked" selected>Most Liked</option>
+            {% else %}
+            <option value="liked">Most Liked</option>
+            {% endif %} {% if sort == 'newest' %}
+            <option value="newest" selected>Newest</option>
+            {% else %}
+            <option value="newest">Newest</option>
+            {% endif %} {% if sort == 'oldest' %}
+            <option value="oldest" selected>Oldest</option>
+            {% else %}
+            <option value="oldest">Oldest</option>
+            {% endif %}
           </select>
           <span class="custom-caret"></span>
         </div>
@@ -24,7 +66,13 @@
   <div class="mb-4">
     <div class="filter-group">
       {% for label, tag in TAGS.items %}
-      <button type="button" class="btn btn-filter {% if tag in active_filters %}active{% endif %}" data-tag="{{ tag }}">{{ label }}</button>
+      <button
+        type="button"
+        class="btn btn-filter {% if tag in active_filters %}active{% endif %}"
+        data-tag="{{ tag }}"
+      >
+        {{ label }}
+      </button>
       {% endfor %}
     </div>
   </div>
@@ -35,38 +83,65 @@
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
         <div class="card recipe-card h-100 shadow-sm">
           {% if saved_recipe.recipe.image %}
-          <img src="{{ saved_recipe.recipe.image.url }}" class="card-img-top recipe-img" alt="{{ saved_recipe.recipe.title }}">
+          <img
+            src="{{ saved_recipe.recipe.image.url }}"
+            class="card-img-top recipe-img"
+            alt="{{ saved_recipe.recipe.title }}"
+          />
           {% else %}
-          <div class="card-img-top recipe-img d-flex align-items-center justify-content-center bg-light text-muted">
+          <div
+            class="card-img-top recipe-img no-image d-flex align-items-center justify-content-center text-muted"
+          >
             <span>No Image</span>
           </div>
           {% endif %}
           <div class="card-body d-flex flex-column">
             <h5 class="card-title mb-2">{{ saved_recipe.recipe.title }}</h5>
+            {% if saved_recipe.recipe.id in shared_recipe_ids %}
             <div class="mb-2 d-flex align-items-center">
+              <!-- prettier-ignore -->
               {% with rating=saved_recipe.recipe.rating|default:4.5 %}
                 {% for i in "12345" %}
                   {% if rating|floatval >= i %}
-                    <span class="star">&#9733;</span>
-                  {% elif rating|floatval >= i|add:"-0.5" %}
-                    <span class="star half-star">&#9733;</span>
-                  {% else %}
-                    <span class="star star-empty">&#9733;</span>
-                  {% endif %}
-                {% endfor %}
-              {% endwith %}
+              <span class="star">&#9733;</span>
+              {% elif rating|floatval >= i|add:"-0.5" %}
+              <span class="star half-star">&#9733;</span>
+              {% else %}
+              <span class="star star-empty">&#9733;</span>
+              {% endif %} {% endfor %} {% endwith %}
             </div>
+            <!-- prettier-ignore-end -->
+            {% endif %}
             <div class="mt-auto d-flex gap-2">
-              <a href="{% url 'recipe_detail' saved_recipe.recipe.id %}" class="btn view-btn flex-fill">View</a>
-              <form method="POST" action="{% url 'save_recipe' %}" class="flex-fill save-recipe-form" enctype="multipart/form-data">
+              <a
+                href="{% url 'recipe_details' saved_recipe.recipe.id %}"
+                class="btn view-btn flex-fill"
+                >View</a
+              >
+              <form
+                method="POST"
+                action="{% url 'save_recipe' %}"
+                class="flex-fill save-recipe-form"
+                enctype="multipart/form-data"
+              >
                 {% csrf_token %}
-                <input type="hidden" name="recipe_hash" value="{{ saved_recipe.recipe.hash }}">
-                <button type="submit" class="btn remove-btn w-100" data-saved="true"><span class="button-text">Remove</span>
+                <input
+                  type="hidden"
+                  name="recipe_hash"
+                  value="{{ saved_recipe.recipe.hash }}"
+                />
+                <button
+                  type="submit"
+                  class="btn remove-btn w-100"
+                  data-saved="true"
+                >
+                  <span class="button-text">Remove</span>
                   <span
                     class="spinner-border spinner-border-sm d-none"
                     role="status"
                     aria-hidden="true"
-                  ></span></button>
+                  ></span>
+                </button>
               </form>
             </div>
             <div class="saved-timestamp">
@@ -80,11 +155,11 @@
     {% else %}
     <div class="text-center py-5">
       {% if request.GET.q or active_filters %}
-        <h4 class="mb-3">No recipes found matching your search criteria.</h4>
-        <p class="text-muted">Try adjusting your search or filters.</p>
+      <h4 class="mb-3">No recipes found matching your search criteria.</h4>
+      <p class="text-muted">Try adjusting your search or filters.</p>
       {% else %}
-        <h4 class="mb-3">You have not saved recipes yet.</h4>
-        <p class="text-muted">Start saving recipes to see them here!</p>
+      <h4 class="mb-3">You have not saved recipes yet.</h4>
+      <p class="text-muted">Start saving recipes to see them here!</p>
       {% endif %}
     </div>
     {% endif %}
@@ -96,17 +171,19 @@
         <h5>Remove Recipe?</h5>
         <p>Are you sure you want to remove this recipe from your saved list?</p>
         <div class="d-flex gap-3 justify-content-end mt-4">
-          <button class="btn btn-filter" id="cancel-remove-btn" type="button">Cancel</button>
-          <button class="btn remove-btn" id="confirm-remove-btn" type="button">Remove</button>
+          <button class="btn btn-filter" id="cancel-remove-btn" type="button">
+            Cancel
+          </button>
+          <button class="btn remove-btn" id="confirm-remove-btn" type="button">
+            Remove
+          </button>
         </div>
       </div>
     </div>
   </div>
 </div>
-{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'recipes/saved.css' %}">
-{% endblock %}
-{% block script %}
+{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'recipes/saved.css' %}" />
+{% endblock %} {% block script %}
 <script type="module" src="{% static 'recipes/saved.js' %}"></script>
 {% endblock %}

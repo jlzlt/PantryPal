@@ -1,0 +1,93 @@
+{% extends "recipes/layout.html" %} {% load static %}
+
+<!-- prettier-ignore -->
+{% block title %}{{ recipe.title }}{% endblock %}
+<!-- prettier-ignore-end -->
+
+{% block extra_css %}
+<link href="{% static 'recipes/recipe_details.css' %}" rel="stylesheet" />
+{% endblock %} {% block body %}
+<div class="recipe-detail-container">
+  {% if recipe.image %}
+  <div class="image-container mb-3">
+    <img
+      src="{{ recipe.image.url }}"
+      alt="{{ recipe.title }}"
+      class="recipe-details-image"
+    />
+    {% endif %}
+  </div>
+
+  <div class="recipe-content">
+    <h1 class="recipe-title">{{ recipe.title }}</h1>
+
+    {% if shared_recipe %}
+    <div class="recipe-meta">
+      <span class="rating">⭐️⭐️⭐️⭐️⭐️ 45</span>
+      <span class="author">{{ shared_recipe.author }}</span>
+    </div>
+    {% endif %}
+
+    <div class="recipe-tags">
+      {% for tag in tag_labels %}
+      <span class="tag">{{ tag }}</span>
+      {% endfor %}
+    </div>
+
+    <div class="recipe-sections">
+      <div class="ingredients-section">
+        <h2>Ingredients</h2>
+        <ul class="ingredients-list">
+          {% for ingredient in recipe.ingredients %}
+          <li>
+            <label><input type="checkbox" /> {{ ingredient }}</label>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="instructions-section">
+        <h2>Instructions</h2>
+        <ol class="instructions-list">
+          {% for instruction in recipe.instructions %}
+          <li>{{ instruction }}</li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button class="edit-recipe-button">Edit</button>
+      <button class="share-button">Share</button>
+      <button class="back-button">Back to Saved</button>
+      <button class="remove-button">Remove</button>
+    </div>
+    <div class="saved-timestamp">
+      Saved {{ saved_recipe.saved_at|date:"M d, Y" }}
+    </div>
+  </div>
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div id="remove-confirm-modal" class="custom-modal-backdrop d-none">
+  <div class="custom-modal">
+    <div class="custom-modal-content">
+      <h5>Remove Recipe?</h5>
+      <p>Are you sure you want to remove this recipe from your saved list?</p>
+      <div class="d-flex gap-3 justify-content-end mt-4">
+        <button class="btn btn-filter" id="cancel-remove-btn" type="button">
+          Cancel
+        </button>
+        <button
+          class="remove-button"
+          data-recipe-hash="{{ recipe.recipe_hash }}"
+          type="button"
+        >
+          Remove
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block script %} {% endblock %}

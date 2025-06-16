@@ -102,11 +102,14 @@
 
     <div class="body">{% block body %} {% endblock %}</div>
 
+    <button id="backToTopBtn" title="Go to top">↑</button>
+
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
       crossorigin="anonymous"
     ></script>
+    <script src="{% static 'recipes/layout.js' %}"></script>
     {% block script %} {% endblock %}
   </body>
 </html>

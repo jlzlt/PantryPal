@@ -27,7 +27,9 @@ document.addEventListener("DOMContentLoaded", function () {
       if (currentFilters.includes(tag)) {
         // Remove the tag if already active
         params.delete("filter"); // Remove all existing 'filter' params
-        currentFilters.filter(f => f !== tag).forEach(f => params.append("filter", f));
+        currentFilters
+          .filter((f) => f !== tag)
+          .forEach((f) => params.append("filter", f));
       } else {
         // Add the tag if not active
         params.append("filter", tag);
@@ -57,7 +59,9 @@ document.addEventListener("DOMContentLoaded", function () {
     spinner.classList.remove("d-none");
     buttonText.classList.add("d-none");
 
-    const recipeHash = pendingRemoveForm.querySelector('input[name="recipe_hash"]').value;
+    const recipeHash = pendingRemoveForm.querySelector(
+      'input[name="recipe_hash"]'
+    ).value;
 
     fetch("/remove_saved_recipe/", {
       method: "POST",
@@ -75,9 +79,15 @@ document.addEventListener("DOMContentLoaded", function () {
         submitBtn.disabled = false;
 
         if (data.status === "removed") {
-          const cardCol = pendingRemoveForm.closest(".col-12.col-sm-6.col-md-4.col-lg-3");
+          const cardCol = pendingRemoveForm.closest(
+            ".col-12.col-sm-6.col-md-4.col-lg-3"
+          );
           if (cardCol) cardCol.remove();
-          if (recipeContainer.querySelectorAll(".col-12.col-sm-6.col-md-4.col-lg-3").length === 0) {
+          if (
+            recipeContainer.querySelectorAll(
+              ".col-12.col-sm-6.col-md-4.col-lg-3"
+            ).length === 0
+          ) {
             recipeContainer.innerHTML = `
               <div class="text-center py-5">
                 <h4 class="mb-3">You have not saved recipes yet.</h4>

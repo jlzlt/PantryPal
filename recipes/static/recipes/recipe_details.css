@@ -1,0 +1,173 @@
+/* Container & Layout */
+.recipe-detail-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+/* Image */
+
+.image-container {
+  width: 100%;
+  max-width: 800px;
+  background-color: #f9f9f9;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.recipe-details-image {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: block;
+  object-fit: cover;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Content Box */
+.recipe-content {
+  width: 100%;
+  max-width: 800px;
+  background-color: #f9f9f9;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Title */
+.recipe-title {
+  font-size: 2.5em;
+  color: #333;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* Meta */
+.recipe-meta {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #666;
+}
+
+.rating {
+  color: #ffc107;
+  margin-right: 10px;
+}
+
+.author {
+  font-style: italic;
+}
+
+/* Tags */
+.recipe-tags {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.tag {
+  display: inline-block;
+  background-color: #e0f7fa;
+  color: #00796b;
+  padding: 8px 15px;
+  border-radius: 20px;
+  margin: 5px;
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+/* Sections */
+.recipe-sections {
+  display: flex;
+  justify-content: space-around;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.ingredients-section,
+.instructions-section {
+  flex: 1;
+}
+
+h2 {
+  font-size: 1.8em;
+  color: #333;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 5px;
+}
+
+.ingredients-list,
+.instructions-list {
+  list-style: none;
+  padding: 0;
+}
+
+.ingredients-list li,
+.instructions-list li {
+  margin-bottom: 10px;
+  line-height: 1.6;
+  color: #555;
+}
+
+.ingredients-list input[type="checkbox"] {
+  margin-right: 10px;
+  transform: scale(1.2);
+}
+
+/* Button Group */
+.button-group {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.button-group button {
+  all: unset;
+  display: inline-block;
+  padding: 12px 25px;
+  border-radius: 5px;
+  font-size: 1em;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  margin: 0 10px;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+/* Specific Buttons with increased specificity */
+.button-group button.edit-recipe-button {
+  background-color: #6c757d;
+}
+.button-group button.edit-recipe-button:hover {
+  background-color: #5a6268;
+}
+
+.button-group button.share-button {
+  background-color: #28a745;
+}
+.button-group button.share-button:hover {
+  background-color: #218838;
+}
+
+.button-group button.back-button {
+  background-color: #dc3545;
+}
+.button-group button.back-button:hover {
+  background-color: #c82333;
+}
+
+.saved-timestamp {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e9ecef;
+  text-align: center;
+}
