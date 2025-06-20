@@ -249,7 +249,7 @@ def build_prompt(ingredients, selected_filters, generated_titles):
         '"instructions" must be a JSON array of strings — each string must be a full, descriptive step in the cooking process. '
         'Steps should include time, temperature, textures, or other sensory cues when applicable (e.g., "Sauté the onions in olive oil over medium heat for 5–7 minutes, until soft and golden."). '
         "Ingredients should be portioned for one person. "
-        "Only include ingredients that make sense together — skip anything that doesn’t fit naturally (unless preferences say otherwise). "
+        "Only include ingredients that make sense together — skip anything that doesn't fit naturally (unless preferences say otherwise). "
         "Avoid vague instructions like 'cook the pasta' — always specify how to cook it, how long, and what to look for. "
     )
 
@@ -362,8 +362,68 @@ def generate_image(prompt: str) -> str:
     return image_url
 
 
-def trending(request):
-    pass
+def shared(request):
+    shared_recipes_qs = SharedRecipe.objects.all()
+
+    # Search
+    q = request.GET.get("q", "").strip()
+    if q:
+        shared_recipes_qs = shared_recipes_qs.filter(recipe__title__icontains=q)
+
+    # Sort
+    sort = request.GET.get("sort", "liked")
+    if sort == "newest":
+        shared_recipes_qs = shared_recipes_qs.order_by("-recipe__created_at")
+    elif sort == "oldest":
+        shared_recipes_qs = shared_recipes_qs.order_by("recipe__created_at")
+    else:  # Default: 'liked' (most recently shared)
+        shared_recipes_qs = shared_recipes_qs.order_by("-shared_at")
+
+    shared_recipes = list(shared_recipes_qs)
+
+    # Filter by tag (Python-side filtering)
+    active_filters = request.GET.getlist("filter")
+    if active_filters:
+        shared_recipes = [
+            sr
+            for sr in shared_recipes
+            if all(f in (sr.recipe.tags or []) for f in active_filters)
+        ]
+
+    # Pagination for infinite scroll
+    page = request.GET.get("page", 1)
+    try:
+        page = int(page)
+    except (TypeError, ValueError):
+        page = 1
+
+    items_per_page = 12
+    start_idx = (page - 1) * items_per_page
+    end_idx = start_idx + items_per_page
+    has_more = end_idx < len(shared_recipes)
+
+    current_page_recipes = shared_recipes[start_idx:end_idx]
+
+    # If it's an AJAX request, return only the recipe cards HTML
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        html = render_to_string(
+            "recipes/partials/_shared_recipe_cards.html",
+            {"shared_recipes": current_page_recipes},
+            request=request,
+        )
+        return JsonResponse({"html": html, "has_more": has_more})
+
+    return render(
+        request,
+        "recipes/shared.html",
+        {
+            "shared_recipes": current_page_recipes,
+            "active_filters": active_filters,
+            "sort": sort,
+            "TAGS": TAGS,
+            "has_more": has_more,
+        },
+    )
 
 
 def about(request):

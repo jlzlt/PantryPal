@@ -1,0 +1,111 @@
+{% extends "recipes/layout.html" %} {% load static %} {% load recipe_extras %}
+{% block title %}Community Recipes{% endblock %} {% block body %}
+<div class="container py-4 saved-recipes-container">
+  <h1 class="mb-4 saved-title">Community Recipes</h1>
+  <div
+    class="d-flex flex-wrap align-items-center gap-3 mb-2 saved-controls-row"
+  >
+    <div class="d-flex flex-grow-1 align-items-center gap-2">
+      <form
+        class="flex-grow-1 search-form position-relative mb-0"
+        method="get"
+        action=""
+      >
+        <input
+          type="text"
+          class="form-control search-bar pe-5"
+          placeholder="Search recipes"
+          name="q"
+          value="{{ request.GET.q|default:'' }}"
+          autocomplete="off"
+        />
+        <button type="submit" class="search-btn-inside" aria-label="Search">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="11" cy="11" r="7" stroke="#23423b" stroke-width="2" />
+            <path
+              d="M20 20L16.65 16.65"
+              stroke="#23423b"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </form>
+      <form method="get" action="" class="mb-0 sort-form ms-2">
+        <div class="custom-dropdown-wrapper">
+          <select
+            class="form-select sort-dropdown"
+            name="sort"
+            onchange="this.form.submit()"
+          >
+            {% if sort == 'liked' %}
+            <option value="liked" selected>Most Liked</option>
+            {% else %}
+            <option value="liked">Most Liked</option>
+            {% endif %} {% if sort == 'newest' %}
+            <option value="newest" selected>Newest</option>
+            {% else %}
+            <option value="newest">Newest</option>
+            {% endif %} {% if sort == 'oldest' %}
+            <option value="oldest" selected>Oldest</option>
+            {% else %}
+            <option value="oldest">Oldest</option>
+            {% endif %}
+          </select>
+          <span class="custom-caret"></span>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="mb-4">
+    <div class="filter-group">
+      {% for label, tag in TAGS.items %}
+      <button
+        type="button"
+        class="btn btn-filter {% if tag in active_filters %}active{% endif %}"
+        data-tag="{{ tag }}"
+      >
+        {{ label }}
+      </button>
+      {% endfor %}
+    </div>
+  </div>
+  <div id="saved-recipe-results">
+    {% if shared_recipes %}
+    <div class="row g-4">
+      {% include "recipes/partials/_shared_recipe_cards.html" %}
+    </div>
+    {% if has_more %}
+    <div class="text-center py-4 loading-spinner d-none">
+      <div
+        class="spinner-border text-success"
+        role="status"
+        style="width: 3rem; height: 3rem"
+      >
+        <span class="visually-hidden">Loading more recipes...</span>
+      </div>
+    </div>
+    {% endif %} {% else %}
+    <div class="text-center py-5">
+      {% if request.GET.q or active_filters %}
+      <h4 class="mb-3">No community recipes found matching your search criteria.</h4>
+      <p class="text-muted">Try adjusting your search or filters.</p>
+      {% else %}
+      <h4 class="mb-3">No community recipes have been shared yet.</h4>
+      <p class="text-muted">Be the first to share a recipe with the community!</p>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'recipes/saved.css' %}" />
+{% endblock %} {% block script %}
+<script type="module" src="{% static 'recipes/saved.js' %}"></script>
+{% endblock %} 
