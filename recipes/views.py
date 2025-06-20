@@ -4,12 +4,20 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.http import JsonResponse, HttpResponseRedirect
 from django.db import IntegrityError, transaction
+from django.db.models import Count, Avg
 from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.core.paginator import Paginator
-from .models import User, GeneratedRecipe, Recipe, SavedRecipe, SharedRecipe
+from .models import (
+    User,
+    GeneratedRecipe,
+    Recipe,
+    SavedRecipe,
+    SharedRecipe,
+    RecipeRating,
+)
 from openai import OpenAI
 from .constants import (
     GROQ_API_KEY,
@@ -161,7 +169,9 @@ def index(request):
             recipe_list, raw_text = call_groq(prompt)
 
             if not recipe_list:
-                logging.warning(f"Skipping iteration {i + 1} due to bad response.")
+                logging.warning(
+                    f"Skipping iteration {attempts + 1} due to bad response."
+                )
                 continue
 
             recipe = recipe_list[0]
@@ -365,10 +375,18 @@ def generate_image(prompt: str) -> str:
 def shared(request):
     shared_recipes_qs = SharedRecipe.objects.all()
 
+    # Always annotate with num_ratings (total votes)
+    shared_recipes_qs = shared_recipes_qs.annotate(num_ratings=Count("ratings"))
+
     # Search
     q = request.GET.get("q", "").strip()
     if q:
         shared_recipes_qs = shared_recipes_qs.filter(recipe__title__icontains=q)
+
+    # Filter by tag (DB filtering)
+    active_filters = request.GET.getlist("filter")
+    for f in active_filters:
+        shared_recipes_qs = shared_recipes_qs.filter(recipe__tags__name=f)
 
     # Sort
     sort = request.GET.get("sort", "liked")
@@ -376,35 +394,30 @@ def shared(request):
         shared_recipes_qs = shared_recipes_qs.order_by("-recipe__created_at")
     elif sort == "oldest":
         shared_recipes_qs = shared_recipes_qs.order_by("recipe__created_at")
-    else:  # Default: 'liked' (most recently shared)
+    elif sort == "popular":
+        shared_recipes_qs = shared_recipes_qs.order_by("-num_ratings", "-shared_at")
+    elif sort == "top_rated":
+        shared_recipes_qs = shared_recipes_qs.annotate(
+            avg_rating=Avg("ratings__rating")
+        ).order_by("-avg_rating", "-shared_at")
+    else:
         shared_recipes_qs = shared_recipes_qs.order_by("-shared_at")
 
-    shared_recipes = list(shared_recipes_qs)
-
-    # Filter by tag (Python-side filtering)
-    active_filters = request.GET.getlist("filter")
-    if active_filters:
-        shared_recipes = [
-            sr
-            for sr in shared_recipes
-            if all(f in (sr.recipe.tags or []) for f in active_filters)
-        ]
-
-    # Pagination for infinite scroll
+    # Pagination
     page = request.GET.get("page", 1)
     try:
         page = int(page)
     except (TypeError, ValueError):
         page = 1
 
-    items_per_page = 12
-    start_idx = (page - 1) * items_per_page
-    end_idx = start_idx + items_per_page
-    has_more = end_idx < len(shared_recipes)
+    ITEMS_PER_PAGE = 12
+    start_idx = (page - 1) * ITEMS_PER_PAGE
+    end_idx = start_idx + ITEMS_PER_PAGE
 
-    current_page_recipes = shared_recipes[start_idx:end_idx]
+    recipes_slice = list(shared_recipes_qs[start_idx : end_idx + 1])
+    has_more = len(recipes_slice) > ITEMS_PER_PAGE
+    current_page_recipes = recipes_slice[:ITEMS_PER_PAGE]
 
-    # If it's an AJAX request, return only the recipe cards HTML
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         html = render_to_string(
             "recipes/partials/_shared_recipe_cards.html",
@@ -439,22 +452,21 @@ def saved(request):
     if q:
         saved_recipes_qs = saved_recipes_qs.filter(recipe__title__icontains=q)
 
-    # Sort (apply to QuerySet before Python-side filtering)
+    # Sort
     sort = request.GET.get("sort", "liked")
     if sort == "newest":
         saved_recipes_qs = saved_recipes_qs.order_by("-recipe__created_at")
     elif sort == "oldest":
         saved_recipes_qs = saved_recipes_qs.order_by("recipe__created_at")
-    else:  # Default: 'liked' (most recently saved)
+    else:  # Default: most recently saved
         saved_recipes_qs = saved_recipes_qs.order_by("-saved_at")
 
-    # Convert to list and filter by tag if needed
+    # Convert to list for Python-side filtering
     saved_recipes = list(saved_recipes_qs)
 
     # Filter by tag (Python-side filtering)
-    active_filters = request.GET.getlist("filter")  # Get all 'filter' parameters
+    active_filters = request.GET.getlist("filter")
     if active_filters:
-        # Check if all active_filters are present in recipe.tags
         saved_recipes = [
             sr
             for sr in saved_recipes
@@ -473,23 +485,35 @@ def saved(request):
     end_idx = start_idx + items_per_page
     has_more = end_idx < len(saved_recipes)
 
-    # Get the current page of recipes
     current_page_recipes = saved_recipes[start_idx:end_idx]
+
+    # Collect recipe IDs for current page
+    current_recipe_ids = [sr.recipe.id for sr in current_page_recipes]
+
+    # Query average ratings for these recipes across their shared versions
+    avg_ratings_qs = (
+        Recipe.objects.filter(id__in=current_recipe_ids)
+        .annotate(avg_rating=Avg("shared_versions__ratings__rating"))
+        .values_list("id", "avg_rating")
+    )
+    avg_rating_dict = {recipe_id: (avg or 0) for recipe_id, avg in avg_ratings_qs}
 
     shared_recipe_ids = set(SharedRecipe.objects.values_list("recipe_id", flat=True))
 
-    # If it's an AJAX request, return only the recipe cards HTML
+    # AJAX request returns partial HTML
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         html = render_to_string(
             "recipes/partials/_saved_recipe_cards.html",
             {
                 "saved_recipes": current_page_recipes,
                 "shared_recipe_ids": shared_recipe_ids,
+                "avg_rating_dict": avg_rating_dict,
             },
             request=request,
         )
         return JsonResponse({"html": html, "has_more": has_more})
 
+    # Full page render
     return render(
         request,
         "recipes/saved.html",
@@ -499,6 +523,7 @@ def saved(request):
             "sort": sort,
             "TAGS": TAGS,
             "shared_recipe_ids": shared_recipe_ids,
+            "avg_rating_dict": avg_rating_dict,
             "has_more": has_more,
         },
     )
@@ -526,45 +551,50 @@ def save_recipe(request):
             {"status": "error", "message": "No recipe hash provided."}, status=400
         )
 
-    gen_recipe = get_object_or_404(GeneratedRecipe, hash=recipe_hash, user=request.user)
+    # Try to find a GeneratedRecipe for this user and hash
+    gen_recipe = GeneratedRecipe.objects.filter(hash=recipe_hash, user=request.user).first()
+    recipe = None
+    if gen_recipe:
+        # Try to find an identical recipe already in Recipe
+        recipe = Recipe.objects.filter(hash=recipe_hash).first()
+        if not recipe:
+            # Download image
+            image_file = None
+            if gen_recipe.image_url:
+                try:
+                    response = requests.get(gen_recipe.image_url, timeout=10)
+                    response.raise_for_status()
+                    image_file = ContentFile(
+                        response.content, name=f"{gen_recipe.hash}.jpg"
+                    )
+                except requests.RequestException:
+                    print("Could not download image.")
 
-    try:
-        with transaction.atomic():
-            # Check if an identical recipe already exists
-            recipe = Recipe.objects.filter(hash=recipe_hash).first()
-
-            if not recipe:
-                # Download image
-                image_file = None
-                if gen_recipe.image_url:
-                    try:
-                        response = requests.get(gen_recipe.image_url, timeout=10)
-                        response.raise_for_status()
-                        image_file = ContentFile(
-                            response.content, name=f"{gen_recipe.hash}.jpg"
-                        )
-                    except requests.RequestException:
-                        print("Could not download image.")
-
-                recipe = Recipe.objects.create(
-                    title=gen_recipe.title,
-                    ingredients=gen_recipe.ingredients,
-                    instructions=gen_recipe.instructions,
-                    tags=gen_recipe.tags,
-                    image=image_file,
-                    hash=recipe_hash,
-                )
-
-            # Save the recipe for the user (won't duplicate due to `unique_together`)
-            saved, created = SavedRecipe.objects.get_or_create(
-                user=request.user, recipe=recipe
+            recipe = Recipe.objects.create(
+                title=gen_recipe.title,
+                ingredients=gen_recipe.ingredients,
+                instructions=gen_recipe.instructions,
+                tags=gen_recipe.tags,
+                image=image_file,
+                hash=recipe_hash,
+            )
+    else:
+        # Try to find an existing Recipe with this hash
+        recipe = Recipe.objects.filter(hash=recipe_hash).first()
+        if not recipe:
+            return JsonResponse(
+                {"status": "error", "message": "Recipe not found."}, status=404
             )
 
-            if not created:
-                return JsonResponse(
-                    {"status": "exists", "message": "Recipe already saved."}
-                )
-
+    # Save the recipe for the user (won't duplicate due to `unique_together`)
+    try:
+        saved, created = SavedRecipe.objects.get_or_create(
+            user=request.user, recipe=recipe
+        )
+        if not created:
+            return JsonResponse(
+                {"status": "exists", "message": "Recipe already saved."}
+            )
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
@@ -598,17 +628,35 @@ def remove_saved_recipe(request):
 def recipe_details(request, recipe_id):
     recipe = get_object_or_404(Recipe, id=recipe_id)
 
-    # Reverse-map tag keys to user-facing names
+    # Tag label resolution
     tag_key_to_label = {v: k for k, v in TAGS.items()}
-    tag_labels = []
-
-    for tag in recipe.tags:  # adjust based on how you store tags
-        if tag in tag_key_to_label:
-            tag_labels.append(tag_key_to_label[tag])
+    tag_labels = [
+        tag_key_to_label.get(tag)
+        for tag in (recipe.tags or [])
+        if tag in tag_key_to_label
+    ]
 
     shared_recipe = SharedRecipe.objects.filter(recipe__hash=recipe.hash).first()
+    saved_recipe = SavedRecipe.objects.filter(
+        recipe__hash=recipe.hash, user=request.user
+    ).first()
 
-    saved_recipe = SavedRecipe.objects.filter(recipe__hash=recipe.hash).first()
+    # Ratings setup
+    average_rating = None
+    total_votes = 0
+    user_rating = None
+
+    if shared_recipe:
+        rating_data = shared_recipe.ratings.aggregate(
+            avg=Avg("rating"), count=Count("rating")
+        )
+        average_rating = round(rating_data["avg"], 1) if rating_data["avg"] else None
+        total_votes = rating_data["count"] or 0
+
+        # Correctly get current user's rating using 'rater' field
+        user_rating_obj = shared_recipe.ratings.filter(rater=request.user).first()
+        if user_rating_obj:
+            user_rating = user_rating_obj.rating
 
     return render(
         request,
@@ -618,5 +666,65 @@ def recipe_details(request, recipe_id):
             "tag_labels": tag_labels,
             "shared_recipe": shared_recipe,
             "saved_recipe": saved_recipe,
+            "average_rating": average_rating,
+            "total_votes": total_votes,
+            "user_rating": user_rating,
         },
     )
+
+
+@require_POST
+@login_required
+def share_recipe(request):
+    recipe_id = request.POST.get("recipe_id")
+    if not recipe_id:
+        messages.error(request, "No recipe specified to share.")
+        return redirect("index")
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+    # Check if already shared by this user
+    already_shared = SharedRecipe.objects.filter(
+        recipe=recipe, author=request.user
+    ).exists()
+    if already_shared:
+        messages.info(request, "You have already shared this recipe.")
+        return redirect("recipe_details", recipe_id=recipe.id)
+    SharedRecipe.objects.create(recipe=recipe, author=request.user)
+    messages.success(request, "Recipe shared with the community!")
+    return redirect("recipe_details", recipe_id=recipe.id)
+
+
+@login_required
+def rate_recipe(request, shared_recipe_id):
+    if request.method == "POST":
+        shared_recipe = get_object_or_404(SharedRecipe, id=shared_recipe_id)
+        rating_value = request.POST.get("rating")
+
+        try:
+            rating_value = int(rating_value)
+            if 1 <= rating_value <= 5:
+                # Prevent duplicate ratings by the same user
+                rating_obj, created = RecipeRating.objects.get_or_create(
+                    rater=request.user,
+                    recipe=shared_recipe,
+                    defaults={"rating": rating_value},
+                )
+                if not created:
+                    rating_obj.rating = rating_value
+                    rating_obj.save()
+
+                # For AJAX requests, return JSON
+                if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                    avg = shared_recipe.ratings.aggregate(avg=Avg("rating"), count=Count("rating"))
+                    return JsonResponse({
+                        "success": True,
+                        "user_rating": rating_value,
+                        "average_rating": round(avg["avg"], 1) if avg["avg"] else None,
+                        "total_votes": avg["count"] or 0,
+                    })
+        except (ValueError, TypeError):
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"success": False, "error": "Invalid rating value."}, status=400)
+            pass  # Invalid input silently ignored or handle with a message
+
+    # Fallback for non-AJAX POSTs
+    return redirect("recipe_details", recipe_id=shared_recipe.recipe.id)

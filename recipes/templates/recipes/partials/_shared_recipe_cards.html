@@ -1,3 +1,4 @@
+{% load recipe_extras %}
 {% for shared_recipe in shared_recipes %}
 <div class="col-12 col-sm-6 col-md-4 col-lg-3">
   <div class="card recipe-card h-100 shadow-sm">
@@ -18,23 +19,24 @@
     <div class="card-body d-flex flex-column">
       <h5 class="card-title mb-2">{{ shared_recipe.recipe.title }}</h5>
       <div class="mb-2 d-flex align-items-center">
-        <span class="me-2">Shared by <strong>{{ shared_recipe.author }}</strong></span>
+        <span class="me-2"
+          >Shared by <strong>{{ shared_recipe.author }}</strong></span
+        >
       </div>
       <div class="mb-2">
-        {% if shared_recipe.get_average_rating %}
-          {% with rating=shared_recipe.get_average_rating %}
-            {% for i in "12345" %}
-              {% if rating >= i|add:"0" %}
-                <span class="star">&#9733;</span>
-              {% elif rating >= i|add:"-0.5" %}
-                <span class="star half-star">&#9733;</span>
-              {% else %}
-                <span class="star star-empty">&#9733;</span>
-              {% endif %}
-            {% endfor %}
-            <span class="ms-1">{{ rating }}</span>
-          {% endwith %}
-        {% endif %}
+        <!-- prettier-ignore -->
+        {% with rating=shared_recipe.get_average_rating %}
+        {% for fill in rating|star_fill_percents %}
+          {% if fill == 1.0 %}
+            <span class="star">&#9733;</span>
+          {% elif fill == 0.0 %}
+            <span class="star star-empty">&#9733;</span>
+          {% else %}
+            <span class="star partial-star" style="--star-fill:{{ fill|mul:100|floatformat:0 }}%">&#9733;</span>
+          {% endif %}
+        {% endfor %}
+        {% endwith %}
+        <!-- prettier-ignore-end -->
       </div>
       <div class="mt-auto d-flex gap-2">
         <a
@@ -49,4 +51,4 @@
     </div>
   </div>
 </div>
-{% endfor %} 
+{% endfor %}

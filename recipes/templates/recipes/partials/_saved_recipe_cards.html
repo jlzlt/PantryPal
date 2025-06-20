@@ -1,3 +1,4 @@
+{% load recipe_extras %}
 {% for saved_recipe in saved_recipes %}
 <div class="col-12 col-sm-6 col-md-4 col-lg-3">
   <div class="card recipe-card h-100 shadow-sm">
@@ -21,15 +22,19 @@
       {% if saved_recipe.recipe.id in shared_recipe_ids %}
       <div class="mb-2 d-flex align-items-center">
         <!-- prettier-ignore -->
-        {% with rating=saved_recipe.recipe.rating|default:4.5 %}
-        {% for i in "12345" %}
-            {% if rating >= i|add:"0" %}
-        <span class="star">&#9733;</span>
-        {% elif rating >= i|add:"-0.5" %}
-        <span class="star half-star">&#9733;</span>
-        {% else %}
-        <span class="star star-empty">&#9733;</span>
-        {% endif %} {% endfor %} {% endwith %}
+        {% with rating=avg_rating_dict|dict_get:saved_recipe.recipe.id %}
+        <div class="mb-2 d-flex align-items-center">
+          {% for fill in rating|star_fill_percents %}
+            {% if fill == 1.0 %}
+              <span class="star">&#9733;</span>
+            {% elif fill == 0.0 %}
+              <span class="star star-empty">&#9733;</span>
+            {% else %}
+              <span class="star partial-star" style="--star-fill:{{ fill|mul:100|floatformat:0 }}%">&#9733;</span>
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% endwith %}
         <!-- prettier-ignore-end -->
       </div>
       {% endif %}

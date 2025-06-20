@@ -17,4 +17,6 @@ urlpatterns = [
         "autocomplete_ingredients/", views.autocomplete_ingredients, name="autocomplete"
     ),
     path("recipe/<int:recipe_id>/", views.recipe_details, name="recipe_details"),
+    path("share_recipe/", views.share_recipe, name="share_recipe"),
+    path("rate/<int:shared_recipe_id>/", views.rate_recipe, name="rate_recipe"),
 ]

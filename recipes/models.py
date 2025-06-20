@@ -79,7 +79,7 @@ class SharedRecipe(models.Model):
         ordering = ["-shared_at"]
 
     def __str__(self):
-        return f"#{self.id} {self.recipe.title} shared by {self.user}"
+        return f"#{self.id} {self.recipe.title} shared by {self.author}"
 
     def get_average_rating(self):
         ratings = self.ratings.all()
@@ -97,7 +97,7 @@ class RecipeComment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Comment by {self.user} on {self.recipe}"
+        return f"Comment by {self.author} on {self.recipe}"
 
 
 class RecipeRating(models.Model):
@@ -113,4 +113,4 @@ class RecipeRating(models.Model):
         unique_together = ("rater", "recipe")
 
     def __str__(self):
-        return f"Rating {self.rating}/5 by {self.user} on {self.recipe}"
+        return f"Rating {self.rating}/5 by {self.rater} on {self.recipe}"

@@ -44,11 +44,7 @@
             name="sort"
             onchange="this.form.submit()"
           >
-            {% if sort == 'liked' %}
-            <option value="liked" selected>Most Liked</option>
-            {% else %}
-            <option value="liked">Most Liked</option>
-            {% endif %} {% if sort == 'newest' %}
+            {% if sort == 'newest' %}
             <option value="newest" selected>Newest</option>
             {% else %}
             <option value="newest">Newest</option>

@@ -45,9 +45,13 @@
             onchange="this.form.submit()"
           >
             {% if sort == 'liked' %}
-            <option value="liked" selected>Most Liked</option>
+            <option value="popular" selected>Most Popular</option>
             {% else %}
-            <option value="liked">Most Liked</option>
+            <option value="popular">Most Popular</option>
+            {% endif %} {% if sort == 'top_rated' %}
+            <option value="top_rated" selected>Best Rating</option>
+            {% else %}
+            <option value="top_rated">Best Rating</option>
             {% endif %} {% if sort == 'newest' %}
             <option value="newest" selected>Newest</option>
             {% else %}
@@ -94,11 +98,15 @@
     {% endif %} {% else %}
     <div class="text-center py-5">
       {% if request.GET.q or active_filters %}
-      <h4 class="mb-3">No community recipes found matching your search criteria.</h4>
+      <h4 class="mb-3">
+        No community recipes found matching your search criteria.
+      </h4>
       <p class="text-muted">Try adjusting your search or filters.</p>
       {% else %}
       <h4 class="mb-3">No community recipes have been shared yet.</h4>
-      <p class="text-muted">Be the first to share a recipe with the community!</p>
+      <p class="text-muted">
+        Be the first to share a recipe with the community!
+      </p>
       {% endif %}
     </div>
     {% endif %}
@@ -108,4 +116,4 @@
 <link rel="stylesheet" href="{% static 'recipes/saved.css' %}" />
 {% endblock %} {% block script %}
 <script type="module" src="{% static 'recipes/saved.js' %}"></script>
-{% endblock %} 
+{% endblock %}

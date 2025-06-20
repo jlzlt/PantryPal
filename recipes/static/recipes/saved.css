@@ -2,6 +2,10 @@ body {
   background: linear-gradient(135deg, #eaf6ef 0%, #e3eafc 100%);
 }
 
+select {
+  text-align-last: center;
+}
+
 .saved-recipes-container {
   background: transparent;
   border-radius: 18px;
@@ -189,8 +193,27 @@ body {
 }
 
 .half-star {
+  position: relative;
+  display: inline-block;
+  color: #e0ece6;
+}
+
+.half-star::before {
+  content: "★";
+  position: absolute;
+  left: 0;
+  width: 50%;
+  overflow: hidden;
   color: #f7b731;
-  opacity: 0.6;
+}
+
+.rating-number {
+  font-size: 0.9rem;
+  color: #666666;
+  font-weight: 600;
+  margin-left: 0.3em;
+  vertical-align: middle;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Card Buttons */
@@ -292,11 +315,28 @@ body {
   .saved-title {
     font-size: 2rem;
   }
-  
+
   .recipe-img,
   .card-img-top.no-image {
     height: 140px;
     min-height: 140px;
     max-height: 140px;
   }
+}
+
+.partial-star {
+  font-size: 1.08rem;
+  color: #e0ece6;
+  line-height: 1;
+  margin-right: 2px;
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(
+    to right,
+    #f7b731 var(--star-fill, 0%),
+    #e0ece6 var(--star-fill, 0%)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

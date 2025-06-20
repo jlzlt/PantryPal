@@ -23,8 +23,57 @@
 
     {% if shared_recipe %}
     <div class="recipe-meta">
-      <span class="rating">⭐️⭐️⭐️⭐️⭐️ 45</span>
-      <span class="author">{{ shared_recipe.author }}</span>
+      <div class="author">
+        Shared by: <strong>{{ shared_recipe.author }}</strong>
+      </div>
+      <div class="rating-block-container">
+        <!-- Community Rating -->
+        <div class="community-rating-block">
+          <div class="star-row">
+            <span class="label-align rating-label">Rating:</span>
+            <div class="community-stars">
+              {% load recipe_extras %}
+              {% for fill in average_rating|star_fill_percents %}
+                {% if fill == 1.0 %}
+                  <span class="star">&#9733;</span>
+                {% elif fill == 0.0 %}
+                  <span class="star star-empty">&#9733;</span>
+                {% else %}
+                  <span class="star partial-star" style="--star-fill:{{ fill|mul:100|floatformat:0 }}%;">&#9733;</span>
+                {% endif %}
+              {% endfor %}
+              {% if average_rating %}
+                <span class="rating-number">{{ average_rating|default:"0.0" }}</span>
+                <span class="total-votes">
+                  ({{ total_votes|default:"0" }} vote{{ total_votes|default:"0"|pluralize }})
+                </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <!-- User Rating -->
+        <div class="user-rating-block">
+          <div class="star-row">
+            <span class="label-align user-rating-label">Your rating:</span>
+            <div class="star-rating-input"{% if not user_rating %} data-shared-id="{{ shared_recipe.id }}"{% endif %}>
+              {% for i in "12345" %}
+                {% if user_rating %}
+                  {% if user_rating >= i|add:"0" %}
+                    <span class="star">&#9733;</span>
+                  {% else %}
+                    <span class="star star-empty">&#9733;</span>
+                  {% endif %}
+                {% else %}
+                  <span class="star-input" data-value="{{ i }}">&#9733;</span>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          {% if not user_rating %}
+          <div id="user-rating-feedback" class="user-rating hidden"></div>
+          {% endif %}
+        </div>
+      </div>
     </div>
     {% endif %}
 
@@ -57,21 +106,59 @@
     </div>
 
     <div class="button-group d-flex gap-2 justify-content-center">
-      <a href="{% url 'saved' %}" class="btn view-btn">Back to Saved</a>
-      <button class="btn view-btn">Edit</button>
-      <button class="btn view-btn">Share</button>
-      <form method="POST" action="{% url 'save_recipe' %}" class="save-recipe-form">
+      <button class="btn view-btn" id="share-btn">Share</button>
+      {% if saved_recipe %}
+        <!-- Show Remove button if recipe is saved -->
+        <form
+          method="POST"
+          action="{% url 'remove_saved_recipe' %}"
+          class="remove-recipe-form"
+        >
+          {% csrf_token %}
+          <input type="hidden" name="recipe_hash" value="{{ recipe.hash }}" />
+          <button type="submit" class="btn remove-btn" data-saved="true">
+            <span class="button-text">Remove</span>
+            <span
+              class="spinner-border spinner-border-sm d-none"
+              role="status"
+              aria-hidden="true"
+            ></span>
+          </button>
+        </form>
+      {% else %}
+        <!-- Show Save button if recipe is not saved -->
+        <form
+          method="POST"
+          action="{% url 'save_recipe' %}"
+          class="save-recipe-form"
+        >
+          {% csrf_token %}
+          <input type="hidden" name="recipe_hash" value="{{ recipe.hash }}" />
+          <button type="submit" class="btn view-btn" data-saved="false">
+            <span class="button-text">Save</span>
+            <span
+              class="spinner-border spinner-border-sm d-none"
+              role="status"
+              aria-hidden="true"
+            ></span>
+          </button>
+        </form>
+      {% endif %}
+      <form
+        method="POST"
+        action="{% url 'share_recipe' %}"
+        id="share-form"
+        style="display: none"
+      >
         {% csrf_token %}
-        <input type="hidden" name="recipe_hash" value="{{ recipe.hash }}" />
-        <button type="submit" class="btn remove-btn" data-saved="true">
-          <span class="button-text">Remove</span>
-          <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-        </button>
+        <input type="hidden" name="recipe_id" value="{{ recipe.id }}" />
       </form>
     </div>
+    {% if saved_recipe %}
     <div class="saved-timestamp">
       Saved {{ saved_recipe.saved_at|date:"M d, Y" }}
     </div>
+    {% endif %}
   </div>
 </div>
 
@@ -80,7 +167,9 @@
   <div class="custom-modal">
     <div class="custom-modal-content">
       <h5>Remove Recipe</h5>
-      <p>Are you sure you want to remove this recipe from your saved recipes?</p>
+      <p>
+        Are you sure you want to remove this recipe from your saved recipes?
+      </p>
       <div class="d-flex justify-content-end gap-2">
         <button id="cancel-remove-btn" class="btn btn-secondary">Cancel</button>
         <button id="confirm-remove-btn" class="btn btn-danger">Remove</button>
@@ -89,8 +178,34 @@
   </div>
 </div>
 
-{% endblock %}
+<!-- Save Confirmation Modal -->
+<div id="save-confirm-modal" class="custom-modal-backdrop d-none">
+  <div class="custom-modal">
+    <div class="custom-modal-content">
+      <h5>Save Recipe</h5>
+      <p>Are you sure you want to save this recipe to your saved recipes?</p>
+      <div class="d-flex justify-content-end gap-2">
+        <button id="cancel-save-btn" class="btn btn-secondary">Cancel</button>
+        <button id="confirm-save-btn" class="btn btn-success">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-{% block script %}
+<!-- Share Confirmation Modal -->
+<div id="share-confirm-modal" class="custom-modal-backdrop d-none">
+  <div class="custom-modal">
+    <div class="custom-modal-content">
+      <h5>Share Recipe</h5>
+      <p>Are you sure you want to share this recipe with the community?</p>
+      <div class="d-flex justify-content-end gap-2">
+        <button id="cancel-share-btn" class="btn btn-secondary">Cancel</button>
+        <button id="confirm-share-btn" class="btn btn-success">Share</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block script %}
 <script type="module" src="{% static 'recipes/recipe_details.js' %}"></script>
 {% endblock %}
