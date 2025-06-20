@@ -1,0 +1,65 @@
+{% extends "recipes/layout.html" %}
+{% load static %}
+
+{% block title %}Trending Recipes{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'recipes/trending.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h1 class="text-center mb-4">Trending Recipes</h1>
+    
+    <div class="row" id="recipe-grid">
+        {% for shared_recipe in shared_recipes %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                {% if shared_recipe.recipe.image %}
+                <img src="{{ shared_recipe.recipe.image.url }}" class="card-img-top" alt="{{ shared_recipe.recipe.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ shared_recipe.recipe.title }}</h5>
+                    <p class="card-text">
+                        <small class="text-muted">Shared by {{ shared_recipe.author.username }}</small>
+                    </p>
+                    <div class="rating">
+                        {% if shared_recipe.avg_rating %}
+                        <span class="stars">
+                            {% for i in "12345" %}
+                            {% if forloop.counter <= shared_recipe.avg_rating %}
+                            ⭐️
+                            {% else %}
+                            ☆
+                            {% endif %}
+                            {% endfor %}
+                        </span>
+                        <span class="rating-value">{{ shared_recipe.avg_rating|floatformat:1 }}</span>
+                        {% else %}
+                        <span class="text-muted">No ratings yet</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'recipe_details' shared_recipe.recipe.id %}" class="btn btn-primary w-100">View Recipe</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p class="lead">No shared recipes yet. Be the first to share your recipe!</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if has_more %}
+    <div class="text-center mt-4">
+        <button id="load-more" class="btn btn-outline-primary">Load More</button>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="module" src="{% static 'recipes/trending.js' %}"></script>
+{% endblock %} 

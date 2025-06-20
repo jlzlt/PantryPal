@@ -137,10 +137,16 @@ def index(request):
         # Number of recipes to generate
         num_recipes = request.POST.get("num_recipes", "").strip()
 
+        prompt = (
+            "You are a professional recipe generator. "
+            "Your only output should be a valid JSON array of recipes, where each recipe mimics the format and clarity of top food websites. "
+            "Follow precise formatting and cooking standards. "
+        )
+
         if ingredients:
-            prompt = f"I have these ingredients: {ingredients}. Give me {num_recipes} recipes I can make using the ingredients I have. "
+            prompt += f"I have these ingredients: {ingredients}. Give me {num_recipes} recipes I can make using the ingredients I have. "
         else:
-            prompt = f"I want you to generated {num_recipes} random recipes. "
+            prompt += f"I want you to generated {num_recipes} random recipes. "
 
         # Used for user-facing tags
         selected_tag_keys = [key for key in TAGS.values() if key in request.POST]
@@ -161,12 +167,12 @@ def index(request):
             f"Here is one full example: {json.dumps(EXAMPLE_RECIPE)} ..."
             'Each object MUST have exactly three keys: "title", "ingredients", and "instructions". '
             '"title" must be a string. '
-            '"ingredients" must be a JSON array of strings, where each string describes the amount and item clearly. '
-            '"instructions" must be a JSON array of strings. '
-            "Each ingredient should be portioned for one person. "
-            "Find the best possible combinations. If some ingredients don't fit or don't make sense you can skip them. "
-            "Each instruction step should be written in full, descriptive sentences. "
-            "Avoid vague phrases like 'cook the bacon' — explain how to cook it, how long, what to look for, etc. "
+            '"ingredients" must be a JSON array of strings — each string must clearly state the exact amount, unit, and name of the ingredient, formatted like a professional recipe (e.g., "1 tablespoon olive oil", "100g boneless chicken breast"). '
+            '"instructions" must be a JSON array of strings — each string must be a full, descriptive step in the cooking process. '
+            'Steps should include time, temperature, textures, or other sensory cues when applicable (e.g., "Sauté the onions in olive oil over medium heat for 5–7 minutes, until soft and golden."). '
+            "Ingredients should be portioned for one person. "
+            "Only include ingredients that make sense together — skip anything that doesn't fit naturally (unless I specified to use all ingredients in preferences). "
+            "Avoid vague instructions like 'cook the pasta' — always specify how to cook it, how long, and what to look for. "
             "Do not repeat the same type of recipe (e.g. 3 sandwiches). Use a variety of dishes. "
         )
 
@@ -351,7 +357,7 @@ def saved(request):
         ]
 
     # Pagination for infinite scroll
-    page = request.GET.get('page', 1)
+    page = request.GET.get("page", 1)
     try:
         page = int(page)
     except (TypeError, ValueError):
@@ -361,26 +367,23 @@ def saved(request):
     start_idx = (page - 1) * items_per_page
     end_idx = start_idx + items_per_page
     has_more = end_idx < len(saved_recipes)
-    
+
     # Get the current page of recipes
     current_page_recipes = saved_recipes[start_idx:end_idx]
 
     shared_recipe_ids = set(SharedRecipe.objects.values_list("recipe_id", flat=True))
 
     # If it's an AJAX request, return only the recipe cards HTML
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
         html = render_to_string(
-            'recipes/partials/saved_recipe_cards.html',
+            "recipes/partials/saved_recipe_cards.html",
             {
-                'saved_recipes': current_page_recipes,
-                'shared_recipe_ids': shared_recipe_ids,
+                "saved_recipes": current_page_recipes,
+                "shared_recipe_ids": shared_recipe_ids,
             },
-            request=request
+            request=request,
         )
-        return JsonResponse({
-            'html': html,
-            'has_more': has_more
-        })
+        return JsonResponse({"html": html, "has_more": has_more})
 
     return render(
         request,
