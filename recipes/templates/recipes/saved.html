@@ -79,16 +79,19 @@
   <div id="saved-recipe-results">
     {% if saved_recipes %}
     <div class="row g-4">
-      {% include "recipes/partials/saved_recipe_cards.html" %}
+      {% include "recipes/partials/_saved_recipe_cards.html" %}
     </div>
     {% if has_more %}
     <div class="text-center py-4 loading-spinner d-none">
-      <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;">
+      <div
+        class="spinner-border text-success"
+        role="status"
+        style="width: 3rem; height: 3rem"
+      >
         <span class="visually-hidden">Loading more recipes...</span>
       </div>
     </div>
-    {% endif %}
-    {% else %}
+    {% endif %} {% else %}
     <div class="text-center py-5">
       {% if request.GET.q or active_filters %}
       <h4 class="mb-3">No recipes found matching your search criteria.</h4>
@@ -105,9 +108,13 @@
     <div class="custom-modal">
       <div class="custom-modal-content">
         <h5>Remove Recipe</h5>
-        <p>Are you sure you want to remove this recipe from your saved recipes?</p>
+        <p>
+          Are you sure you want to remove this recipe from your saved recipes?
+        </p>
         <div class="d-flex justify-content-end gap-2">
-          <button id="cancel-remove-btn" class="btn btn-secondary">Cancel</button>
+          <button id="cancel-remove-btn" class="btn btn-secondary">
+            Cancel
+          </button>
           <button id="confirm-remove-btn" class="btn btn-danger">Remove</button>
         </div>
       </div>

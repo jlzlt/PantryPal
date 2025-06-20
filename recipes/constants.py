@@ -43,21 +43,21 @@ try:
 except Exception as e:
     print("Error loading ingredient list:", e)
 
-EXAMPLE_RECIPE = [
-    {
-        "title": "Grilled Cheese Sandwich",
-        "ingredients": [
-            "2 slices of white bread",
-            "2 slices of cheddar cheese",
-            "1 tablespoon of butter",
-        ],
-        "instructions": [
-            "Spread the butter on one side of each slice of bread.",
-            "Place one slice, buttered side down, in a non-stick skillet over medium heat.",
-            "Add the cheese on top of the bread in the skillet.",
-            "Place the second slice of bread on top, buttered side up.",
-            "Cook for 2-3 minutes, until the bottom is golden brown.",
-            "Flip and cook the other side until the bread is toasted and the cheese is fully melted.",
-        ],
-    }
-]
+EXAMPLE_RECIPE = {
+    "title": "Grilled Cheese Sandwich",
+    "ingredients": [
+        "2 slices of white bread",
+        "2 slices of cheddar cheese",
+        "1 tablespoon of butter",
+    ],
+    "instructions": [
+        "Spread the butter on one side of each slice of bread.",
+        "Place one slice, buttered side down, in a non-stick skillet over medium heat.",
+        "Add the cheese on top of the bread in the skillet.",
+        "Place the second slice of bread on top, buttered side up.",
+        "Cook for 2-3 minutes, until the bottom is golden brown.",
+        "Flip and cook the other side until the bread is toasted and the cheese is fully melted.",
+    ],
+}
+
+DEFAULT_IMAGE_URL = "/static/default_recipe_img.png"

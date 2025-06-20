@@ -19,6 +19,7 @@ from .constants import (
     FILTER_PHRASES,
     EXAMPLE_RECIPE,
     TAGS,
+    DEFAULT_IMAGE_URL,
 )
 import json
 import re
@@ -124,99 +125,89 @@ def logout_view(request):
 
 def index(request):
     recipes = None
-    filters_selected = {}
+    error_html = '<div class="alert alert-danger">Failed to load recipes. Please try again.</div>'
 
     if request.method == "POST":
         ingredients = request.POST.get("ingredients", "").strip()
-        print(ingredients)
+        print(f"Ingredients: {ingredients}")
 
         # Collect filters
-        filters_selected = {f: (f in request.POST) for f in FILTER_PHRASES.keys()}
-        print(filters_selected)
+        filters_selected = [name for name in FILTER_PHRASES if name in request.POST]
+        print(f"Selected filters: {filters_selected}")
 
-        # Number of recipes to generate
-        num_recipes = request.POST.get("num_recipes", "").strip()
-
-        prompt = (
-            "You are a professional recipe generator. "
-            "Your only output should be a valid JSON array of recipes, where each recipe mimics the format and clarity of top food websites. "
-            "Follow precise formatting and cooking standards. "
-        )
-
-        if ingredients:
-            prompt += f"I have these ingredients: {ingredients}. Give me {num_recipes} recipes I can make using the ingredients I have. "
-        else:
-            prompt += f"I want you to generated {num_recipes} random recipes. "
-
-        # Used for user-facing tags
+        # User-facing tags
         selected_tag_keys = [key for key in TAGS.values() if key in request.POST]
 
-        # Used for AI prompt
-        selected_filters = [
-            FILTER_PHRASES[name]
-            for name, selected in filters_selected.items()
-            if selected and name in FILTER_PHRASES
-        ]
-        print(selected_filters)
-        if selected_filters:
-            prompt += f"Apply these preferences: {', '.join(selected_filters)}. "
+        # Map selected filters to their descriptive phrases for AI prompt
+        selected_filters = [FILTER_PHRASES[name] for name in filters_selected]
 
-        prompt += (
-            f"Your response should be ONLY a single valid JSON array containing exactly {num_recipes} objects. "
-            "Do not include any extra text, notes, or formatting outside the array (this part is super important, make sure to follow it). "
-            f"Here is one full example: {json.dumps(EXAMPLE_RECIPE)} ..."
-            'Each object MUST have exactly three keys: "title", "ingredients", and "instructions". '
-            '"title" must be a string. '
-            '"ingredients" must be a JSON array of strings — each string must clearly state the exact amount, unit, and name of the ingredient, formatted like a professional recipe (e.g., "1 tablespoon olive oil", "100g boneless chicken breast"). '
-            '"instructions" must be a JSON array of strings — each string must be a full, descriptive step in the cooking process. '
-            'Steps should include time, temperature, textures, or other sensory cues when applicable (e.g., "Sauté the onions in olive oil over medium heat for 5–7 minutes, until soft and golden."). '
-            "Ingredients should be portioned for one person. "
-            "Only include ingredients that make sense together — skip anything that doesn't fit naturally (unless I specified to use all ingredients in preferences). "
-            "Avoid vague instructions like 'cook the pasta' — always specify how to cook it, how long, and what to look for. "
-            "Do not repeat the same type of recipe (e.g. 3 sandwiches). Use a variety of dishes. "
-        )
+        # Number of recipes to generate
+        try:
+            num_recipes = int(request.POST.get("num_recipes", 1))
+        except (ValueError, TypeError):
+            num_recipes = 1
 
-        print(prompt)
+        generated_titles = set()
+        recipes = []
 
-        recipes, raw_text = call_groq(prompt)
+        attempts_limit = num_recipes * 3
+        attempts = 0
 
+        while len(recipes) < num_recipes and attempts < attempts_limit:
+            attempts += 1
+
+            prompt = build_prompt(ingredients, selected_filters, generated_titles)
+
+            recipe_list, raw_text = call_groq(prompt)
+
+            if not recipe_list:
+                logging.warning(f"Skipping iteration {i + 1} due to bad response.")
+                continue
+
+            recipe = recipe_list[0]
+
+            title = recipe.get("title", "").strip()
+            if not title or title in generated_titles:
+                logging.warning(f"Duplicate or missing title: {title}. Skipping.")
+                continue
+
+            generated_titles.add(title)
+
+            # Generate image URL
+            prompt_img = f"A high quality photo of {recipe['title']} dish, appetizing and well-lit"
+            image_url = generate_image(prompt_img) or DEFAULT_IMAGE_URL
+
+            recipe_hash = generate_recipe_hash(recipe)
+
+            # Save to GeneratedRecipe model
+            GeneratedRecipe.objects.create(
+                user=request.user,
+                title=recipe["title"],
+                ingredients=recipe["ingredients"],
+                instructions=recipe["instructions"],
+                tags=selected_tag_keys,
+                image_url=image_url,
+                hash=recipe_hash,
+            )
+
+            recipe["hash"] = recipe_hash
+            recipe["image_url"] = image_url
+            recipe["filters"] = selected_filters
+
+            recipes.append(recipe)
+
+        # If no recipes generated, set recipes to None to show error alert on frontend
         if not recipes:
-            recipes = [
-                {
-                    "title": "Error generating recipes",
-                    "description": raw_text or "No valid response received.",
-                }
-            ]
-        else:
-            for recipe in recipes:
-                # Generate image URL
-                prompt_img = f"A high quality photo of {recipe['title']} dish, appetizing and well-lit"
-                image_url = (
-                    generate_image(prompt_img) or "/static/default_recipe_img.png"
-                )
+            recipes = None
 
-                recipe_hash = generate_recipe_hash(recipe)
-
-                # Save to GeneratedRecipe model
-                GeneratedRecipe.objects.create(
-                    user=request.user,
-                    title=recipe["title"],
-                    ingredients=recipe["ingredients"],
-                    instructions=recipe["instructions"],
-                    tags=selected_tag_keys,
-                    image_url=image_url,
-                    hash=recipe_hash,
-                )
-
-                recipe["hash"] = recipe_hash
-                recipe["image_url"] = image_url
-                recipe["filters"] = selected_filters
-
-    # AJAX response (for JavaScript fetch)
+    # AJAX response for fetch()
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        html = render_to_string(
-            "recipes/_recipe_results.html", {"recipes": recipes}, request=request
-        )
+        if recipes:
+            html = render_to_string(
+                "recipes/_recipe_results.html", {"recipes": recipes}, request=request
+            )
+        else:
+            html = error_html
         return JsonResponse({"html": html})
 
     return render(
@@ -224,6 +215,45 @@ def index(request):
         "recipes/index.html",
         {"recipes": recipes},
     )
+
+
+def build_prompt(ingredients, selected_filters, generated_titles):
+    prompt = (
+        "You are a professional recipe generator. "
+        "Your only output should be a valid JSON object representing one complete recipe, where you should mimic the format and clarity of top food websites. "
+        "Follow precise formatting and cooking standards. "
+    )
+
+    if ingredients:
+        prompt += f"I have these ingredients: {ingredients}. Give me 1 recipe I can make using them. "
+    else:
+        prompt += f"Generate 1 random recipe. "
+
+    if selected_filters:
+        prompt += f"Apply these preferences: {', '.join(selected_filters)}. "
+
+    if generated_titles:
+        prompt += (
+            "Exclude these recipes: "
+            + ", ".join(f'"{t}"' for t in generated_titles)
+            + ". "
+        )
+
+    prompt += (
+        "Your response should be ONLY a single valid JSON object representing one complete recipe. "
+        "Do not include any extra text, comments, explanations, or formatting outside the JSON object. "
+        f"Here is one example recipe object (for format reference only, do not duplicate): {json.dumps(EXAMPLE_RECIPE)} "
+        'The object MUST contain exactly three keys: "title", "ingredients", and "instructions". '
+        '"title" must be a string. '
+        '"ingredients" must be a JSON array of strings — each string must clearly state the exact amount, unit, and name of the ingredient, formatted like a professional recipe (e.g., "1 tablespoon olive oil", "100g boneless chicken breast"). '
+        '"instructions" must be a JSON array of strings — each string must be a full, descriptive step in the cooking process. '
+        'Steps should include time, temperature, textures, or other sensory cues when applicable (e.g., "Sauté the onions in olive oil over medium heat for 5–7 minutes, until soft and golden."). '
+        "Ingredients should be portioned for one person. "
+        "Only include ingredients that make sense together — skip anything that doesn’t fit naturally (unless preferences say otherwise). "
+        "Avoid vague instructions like 'cook the pasta' — always specify how to cook it, how long, and what to look for. "
+    )
+
+    return prompt
 
 
 def call_groq(prompt, retries=5):
@@ -251,12 +281,14 @@ def call_groq(prompt, retries=5):
         json_text = extract_json(response_text)
 
         try:
-            parsed = json.loads(json_text.replace("'", '"'))
-            if isinstance(parsed, list) and all(isinstance(r, dict) for r in parsed):
+            parsed = json.loads(json_text)
+            if isinstance(parsed, dict):
+                return [parsed], response_text
+            elif isinstance(parsed, list) and all(isinstance(r, dict) for r in parsed):
                 return parsed, response_text
             else:
                 logging.warning(
-                    f"Parsed content is not a list of dicts (attempt {attempt + 1})"
+                    f"Parsed content is not a dict or list of dicts (attempt {attempt + 1})"
                 )
                 continue
         except Exception as e:
@@ -264,33 +296,46 @@ def call_groq(prompt, retries=5):
             continue
 
     # If all attempts fail
-    logging.error("All retries failed. Returning last raw response.")
+    logging.error(
+        f"All retries failed. Last raw response: {last_response_text[:200]}..."
+    )
     return None, last_response_text
 
 
 def extract_json(text):
     """
-    Extract the first top-level JSON array from text, even with nested dicts/lists.
-    Falls back to returning raw text if no valid-looking JSON is found.
+    Extract the first top-level JSON object or array from text, even with nested structures.
+    Removes markdown code fences if present.
     """
-    # Remove code fences if present
-    text = re.sub(r"```(?:json)?", "", text).strip("` \n")
+    # Clean up markdown formatting
+    text = re.sub(r"^```(?:json)?", "", text).strip("` \n")
 
-    # Try to find the first [ and balance brackets to extract the full array
-    start = text.find("[")
-    if start == -1:
-        return text  # No JSON array found
+    # Look for the first '{' or '['
+    brace_start = text.find("{")
+    bracket_start = text.find("[")
 
+    if brace_start == -1 and bracket_start == -1:
+        return text  # fallback
+
+    # Use whichever comes first
+    if brace_start == -1 or (bracket_start != -1 and bracket_start < brace_start):
+        start = bracket_start
+        open_char, close_char = "[", "]"
+    else:
+        start = brace_start
+        open_char, close_char = "{", "}"
+
+    # Balance the brackets/braces
     depth = 0
     for i in range(start, len(text)):
-        if text[i] == "[":
+        if text[i] == open_char:
             depth += 1
-        elif text[i] == "]":
+        elif text[i] == close_char:
             depth -= 1
             if depth == 0:
                 return text[start : i + 1]
 
-    return text  # fallback if brackets aren't balanced
+    return text  # fallback if unbalanced
 
 
 @require_GET
@@ -376,7 +421,7 @@ def saved(request):
     # If it's an AJAX request, return only the recipe cards HTML
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         html = render_to_string(
-            "recipes/partials/saved_recipe_cards.html",
+            "recipes/partials/_saved_recipe_cards.html",
             {
                 "saved_recipes": current_page_recipes,
                 "shared_recipe_ids": shared_recipe_ids,
