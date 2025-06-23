@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.http import JsonResponse, HttpResponseRedirect
@@ -37,6 +37,9 @@ import random
 import requests
 import hashlib
 import ast
+from django import forms
+from django.contrib.auth.forms import PasswordChangeForm as DjangoPasswordChangeForm
+from django.contrib.auth.password_validation import validate_password
 
 
 def register(request):
@@ -775,3 +778,43 @@ def remove_shared_recipe(request):
     shared_recipe.delete()
     messages.success(request, "Recipe removed from shared recipes!")
     return redirect("recipe_details", recipe_id=recipe.id)
+
+
+class EmailForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['email']
+
+class DevPasswordChangeForm(DjangoPasswordChangeForm):
+    def clean_new_password1(self):
+        password1 = self.cleaned_data.get('new_password1')
+        # Skip all validators in development mode
+        return password1
+
+@login_required
+def profile(request):
+    user = request.user
+    email_form = EmailForm(instance=user)
+    password_form = DevPasswordChangeForm(user)
+    email_success = password_success = False
+
+    if request.method == 'POST':
+        if 'email_submit' in request.POST:
+            email_form = EmailForm(request.POST, instance=user)
+            if email_form.is_valid():
+                email_form.save()
+                email_success = True
+        elif 'password_submit' in request.POST:
+            password_form = DevPasswordChangeForm(user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)  # Keep user logged in
+                password_success = True
+
+    return render(request, 'recipes/profile.html', {
+        'user': user,
+        'email_form': email_form,
+        'password_form': password_form,
+        'email_success': email_success,
+        'password_success': password_success,
+    })
