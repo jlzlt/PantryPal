@@ -53,8 +53,11 @@ def register(request):
         elif User.objects.filter(username=username).exists():
             errors["username"] = "Username already taken."
 
+        email_pattern = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
         if not email:
             errors["email"] = "Email is required."
+        elif not re.match(email_pattern, email):
+            errors["email"] = "Please enter a valid email address."
         elif User.objects.filter(email=email).exists():
             errors["email"] = "Email already in use."
 

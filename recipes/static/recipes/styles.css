@@ -1,5 +1,6 @@
 body {
   background: linear-gradient(135deg, #f4f6f9, #d9e4f5, #c2d4f2);
+  min-height: 100vh;
 }
 
 .logo-img {
@@ -222,4 +223,26 @@ button[disabled] {
 
 #backToTopBtn:hover {
   background-color: #486a8e;
+}
+
+/* Auth (login/register) card styles */
+.auth-wrapper {
+  /* background: linear-gradient(135deg, #eaf6ef 0%, #e3eafc 100%); */
+  /* min-height: 100vh; */
+}
+
+.auth-card {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 32px rgba(44, 62, 80, 0.08);
+}
+
+.auth-link {
+  color: #00b09b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: text-decoration 0.2s;
+}
+.auth-link:hover {
+  text-decoration: underline;
 }
