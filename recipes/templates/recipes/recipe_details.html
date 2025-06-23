@@ -1,8 +1,6 @@
 {% extends "recipes/layout.html" %} {% load static %}
 
-<!-- prettier-ignore -->
 {% block title %}{{ recipe.title }}{% endblock %}
-<!-- prettier-ignore-end -->
 
 {% block extra_css %}
 <link href="{% static 'recipes/recipe_details.css' %}" rel="stylesheet" />
@@ -39,7 +37,7 @@
                 {% elif fill == 0.0 %}
                   <span class="star star-empty">&#9733;</span>
                 {% else %}
-                  <span class="star partial-star" style="--star-fill:{{ fill|mul:100|floatformat:0 }}%;">&#9733;</span>
+                  <span class="star partial-star" style="--star-fill: '{{ fill|mul:100|floatformat:0 }}%';">&#9733;</span>
                 {% endif %}
               {% endfor %}
               {% if average_rating %}
