@@ -392,7 +392,7 @@ def shared(request):
         shared_recipes_qs = shared_recipes_qs.filter(recipe__tags__name=f)
 
     # Sort
-    sort = request.GET.get("sort", "liked")
+    sort = request.GET.get("sort", "popular")
     if sort == "newest":
         shared_recipes_qs = shared_recipes_qs.order_by("-recipe__created_at")
     elif sort == "oldest":
