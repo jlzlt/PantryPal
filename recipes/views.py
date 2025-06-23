@@ -644,6 +644,14 @@ def recipe_details(request, recipe_id):
         recipe__hash=recipe.hash, user=request.user
     ).first()
 
+    # Check if the recipe is shared by the current user
+    is_shared_by_user = SharedRecipe.objects.filter(
+        recipe=recipe, author=request.user
+    ).exists()
+
+    # Check if the recipe is shared by any user
+    is_shared_by_anyone = SharedRecipe.objects.filter(recipe=recipe).exists()
+
     # Ratings setup
     average_rating = None
     total_votes = 0
@@ -672,6 +680,8 @@ def recipe_details(request, recipe_id):
             "average_rating": average_rating,
             "total_votes": total_votes,
             "user_rating": user_rating,
+            "is_shared_by_user": is_shared_by_user,
+            "is_shared_by_anyone": is_shared_by_anyone,
         },
     )
 
@@ -683,14 +693,23 @@ def share_recipe(request):
     if not recipe_id:
         messages.error(request, "No recipe specified to share.")
         return redirect("index")
+    
     recipe = get_object_or_404(Recipe, id=recipe_id)
-    # Check if already shared by this user
-    already_shared = SharedRecipe.objects.filter(
+    
+    # Check if already shared by any user
+    already_shared = SharedRecipe.objects.filter(recipe=recipe).exists()
+    if already_shared:
+        messages.error(request, "This recipe has already been shared by another user.")
+        return redirect("recipe_details", recipe_id=recipe.id)
+    
+    # Check if already shared by this user (extra safety check)
+    already_shared_by_user = SharedRecipe.objects.filter(
         recipe=recipe, author=request.user
     ).exists()
-    if already_shared:
+    if already_shared_by_user:
         messages.info(request, "You have already shared this recipe.")
         return redirect("recipe_details", recipe_id=recipe.id)
+    
     SharedRecipe.objects.create(recipe=recipe, author=request.user)
     messages.success(request, "Recipe shared with the community!")
     return redirect("recipe_details", recipe_id=recipe.id)
@@ -731,3 +750,23 @@ def rate_recipe(request, shared_recipe_id):
 
     # Fallback for non-AJAX POSTs
     return redirect("recipe_details", recipe_id=shared_recipe.recipe.id)
+
+
+@require_POST
+@login_required
+def remove_shared_recipe(request):
+    recipe_id = request.POST.get("recipe_id")
+    if not recipe_id:
+        messages.error(request, "No recipe specified to remove from shared.")
+        return redirect("index")
+    
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+    shared_recipe = SharedRecipe.objects.filter(recipe=recipe, author=request.user).first()
+    
+    if not shared_recipe:
+        messages.error(request, "You haven't shared this recipe.")
+        return redirect("recipe_details", recipe_id=recipe.id)
+    
+    shared_recipe.delete()
+    messages.success(request, "Recipe removed from shared recipes!")
+    return redirect("recipe_details", recipe_id=recipe.id)

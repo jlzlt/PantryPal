@@ -106,7 +106,15 @@
     </div>
 
     <div class="button-group d-flex gap-2 justify-content-center">
-      <button class="btn view-btn" id="share-btn">Share</button>
+      {% if is_shared_by_user %}
+        <form method="POST" action="{% url 'remove_shared_recipe' %}" id="remove-share-form">
+          {% csrf_token %}
+          <input type="hidden" name="recipe_id" value="{{ recipe.id }}" />
+          <button type="submit" class="btn remove-btn" id="remove-share-btn">Remove from Shared</button>
+        </form>
+      {% elif not is_shared_by_anyone %}
+        <button class="btn view-btn" id="share-btn">Share</button>
+      {% endif %}
       {% if saved_recipe %}
         <!-- Show Remove button if recipe is saved -->
         <form
@@ -117,7 +125,7 @@
           {% csrf_token %}
           <input type="hidden" name="recipe_hash" value="{{ recipe.hash }}" />
           <button type="submit" class="btn remove-btn" data-saved="true">
-            <span class="button-text">Remove</span>
+            <span class="button-text">Remove from Saved</span>
             <span
               class="spinner-border spinner-border-sm d-none"
               role="status"
@@ -166,13 +174,13 @@
 <div id="remove-confirm-modal" class="custom-modal-backdrop d-none">
   <div class="custom-modal">
     <div class="custom-modal-content">
-      <h5>Remove Recipe</h5>
+      <h5>Remove from Saved</h5>
       <p>
         Are you sure you want to remove this recipe from your saved recipes?
       </p>
       <div class="d-flex justify-content-end gap-2">
         <button id="cancel-remove-btn" class="btn btn-secondary">Cancel</button>
-        <button id="confirm-remove-btn" class="btn btn-danger">Remove</button>
+        <button id="confirm-remove-btn" class="btn btn-danger">Remove from Saved</button>
       </div>
     </div>
   </div>
@@ -201,6 +209,20 @@
       <div class="d-flex justify-content-end gap-2">
         <button id="cancel-share-btn" class="btn btn-secondary">Cancel</button>
         <button id="confirm-share-btn" class="btn btn-success">Share</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Remove Share Confirmation Modal -->
+<div id="remove-share-confirm-modal" class="custom-modal-backdrop d-none">
+  <div class="custom-modal">
+    <div class="custom-modal-content">
+      <h5>Remove Shared Recipe</h5>
+      <p>Are you sure you want to remove this recipe from shared recipes?</p>
+      <div class="d-flex justify-content-end gap-2">
+        <button id="cancel-remove-share-btn" class="btn btn-secondary">Cancel</button>
+        <button id="confirm-remove-share-btn" class="btn btn-danger">Remove</button>
       </div>
     </div>
   </div>

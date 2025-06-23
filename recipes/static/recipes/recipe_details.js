@@ -22,6 +22,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const cancelShareBtn = document.getElementById("cancel-share-btn");
   const shareForm = document.getElementById("share-form");
 
+  // Remove share modal elements
+  const removeShareModal = document.getElementById("remove-share-confirm-modal");
+  const removeShareForm = document.getElementById("remove-share-form");
+  const confirmRemoveShareBtn = document.getElementById("confirm-remove-share-btn");
+  const cancelRemoveShareBtn = document.getElementById("cancel-remove-share-btn");
+
   // Handle recipe removal form submission
   if (recipeContainer) {
     recipeContainer.addEventListener("submit", (e) => {
@@ -36,7 +42,24 @@ document.addEventListener("DOMContentLoaded", function () {
         // Show custom modal for save
         pendingSaveForm = form;
         saveModal.classList.remove("d-none");
+      } else if (form.id === "remove-share-form") {
+        e.preventDefault();
+        removeShareModal.classList.remove("d-none");
       }
+    });
+  }
+
+  // Handle remove share modal
+  if (confirmRemoveShareBtn && removeShareForm && removeShareModal) {
+    confirmRemoveShareBtn.addEventListener("click", () => {
+      removeShareForm.submit();
+      removeShareModal.classList.add("d-none");
+    });
+  }
+
+  if (cancelRemoveShareBtn && removeShareModal) {
+    cancelRemoveShareBtn.addEventListener("click", () => {
+      removeShareModal.classList.add("d-none");
     });
   }
 
@@ -52,18 +75,17 @@ document.addEventListener("DOMContentLoaded", function () {
       buttonText.classList.add("d-none");
       spinner.classList.remove("d-none");
       button.disabled = true;
+
       try {
         const response = await fetch("/remove_saved_recipe/", {
           method: "POST",
           headers: {
-            "X-CSRFToken": getCSRFToken(),
-            "X-Requested-With": "XMLHttpRequest",
             "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCSRFToken(),
           },
-          body: `recipe_hash=${encodeURIComponent(
-            form.querySelector('input[name="recipe_hash"]').value
-          )}`,
+          body: new URLSearchParams(new FormData(form)),
         });
+
         const data = await response.json();
         if (data.status === "removed") {
           // Swap Remove for Save button
@@ -141,23 +163,21 @@ document.addEventListener("DOMContentLoaded", function () {
       buttonText.classList.add("d-none");
       spinner.classList.remove("d-none");
       button.disabled = true;
+
       try {
-        const response = await fetch(form.action, {
+        const response = await fetch("/save_recipe/", {
           method: "POST",
           headers: {
-            "X-CSRFToken": getCSRFToken(),
-            "X-Requested-With": "XMLHttpRequest",
             "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCSRFToken(),
           },
-          body: `recipe_hash=${encodeURIComponent(
-            form.querySelector('input[name="recipe_hash"]').value
-          )}`,
+          body: new URLSearchParams(new FormData(form)),
         });
+
         const data = await response.json();
-        if (data.status === "saved" || data.status === "exists") {
+        if (data.status === "saved") {
           // Swap Save for Remove button
           const buttonGroup = form.parentNode;
-          // Remove the Save form
           form.remove();
           // Create Remove form
           const removeForm = document.createElement("form");
@@ -168,31 +188,26 @@ document.addEventListener("DOMContentLoaded", function () {
             <input type="hidden" name="csrfmiddlewaretoken" value="${getCSRFToken()}">
             <input type="hidden" name="recipe_hash" value="${form.querySelector('input[name=recipe_hash]').value}">
             <button type="submit" class="btn remove-btn" data-saved="true">
-              <span class="button-text">Remove</span>
+              <span class="button-text">Remove from Saved</span>
               <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
             </button>
           `;
           buttonGroup.appendChild(removeForm);
-          // Add or update saved-timestamp footer
-          let timestamp = document.querySelector(".saved-timestamp");
-          if (!timestamp) {
-            timestamp = document.createElement("div");
-            timestamp.className = "saved-timestamp";
-            // Append to .recipe-content
-            const recipeContent = document.querySelector(".recipe-content");
-            if (recipeContent) recipeContent.appendChild(timestamp);
-          }
-          // Format today's date as 'M d, Y'
-          const now = new Date();
-          const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-          const formatted = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
-          timestamp.textContent = `Saved ${formatted}`;
+          // Add saved-timestamp footer
+          const timestamp = document.createElement("div");
+          timestamp.className = "saved-timestamp";
+          timestamp.textContent = `Saved ${new Date().toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}`;
+          document.querySelector(".button-group").insertAdjacentElement("afterend", timestamp);
         } else {
           alert(data.message || "Failed to save recipe.");
         }
-      } catch (err) {
-        alert("Error saving recipe. Please try again.");
-        console.error("Save error:", err);
+      } catch (error) {
+        alert("Failed to save recipe. Please try again.");
+        console.error("Error:", error);
       } finally {
         saveModal.classList.add("d-none");
         pendingSaveForm = null;
@@ -204,6 +219,8 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
+
+  // Handle save modal cancellation
   if (cancelSaveBtn) {
     cancelSaveBtn.addEventListener("click", () => {
       saveModal.classList.add("d-none");
