@@ -1,9 +1,17 @@
 {% extends "recipes/layout.html" %} {% load static %} {% block body %}
-<div class="auth-wrapper" style="min-height: 100vh;">
-  <div class="auth-card card shadow-lg p-4 mx-auto mt-5" style="max-width: 400px; width: 100%; border-radius: 1.5rem;">
+<div class="auth-wrapper">
+  <div
+    class="auth-card card shadow-lg p-4 mx-auto mt-5"
+    style="max-width: 400px; width: 100%; border-radius: 1.5rem"
+  >
     <div class="text-center mb-4">
-      <img src="{% static 'recipes/logo.png' %}" alt="Logo" class="mb-2" style="height: 48px;">
-      <h2 class="mb-1" style="font-weight: 700;">Welcome Back</h2>
+      <img
+        src="{% static 'recipes/logo.png' %}"
+        alt="Logo"
+        class="mb-2"
+        style="height: 48px"
+      />
+      <h2 class="mb-1" style="font-weight: 700">Welcome Back</h2>
       <p class="text-muted mb-0">Log in to your PantryPal account</p>
     </div>
     <form action="{% url 'login' %}" method="post" autocomplete="off">
@@ -11,7 +19,14 @@
       <div class="form-group mb-3">
         <div class="input-group">
           <span class="input-group-text"><i class="bi bi-person"></i></span>
-          <input autofocus class="form-control {% if errors.username %}is-invalid{% endif %}" type="text" name="username" placeholder="Username" autocomplete="username" />
+          <input
+            autofocus
+            class="form-control {% if errors.username %}is-invalid{% endif %}"
+            type="text"
+            name="username"
+            placeholder="Username"
+            autocomplete="username"
+          />
         </div>
         {% if errors.username %}
         <div class="invalid-feedback d-block mb-2">{{ errors.username }}</div>
@@ -20,13 +35,25 @@
       <div class="form-group mb-3">
         <div class="input-group">
           <span class="input-group-text"><i class="bi bi-lock"></i></span>
-          <input class="form-control {% if errors.password %}is-invalid{% endif %}" type="password" name="password" placeholder="Password" autocomplete="new-password" />
+          <input
+            class="form-control {% if errors.password %}is-invalid{% endif %}"
+            type="password"
+            name="password"
+            placeholder="Password"
+            autocomplete="new-password"
+          />
         </div>
         {% if errors.password %}
         <div class="invalid-feedback d-block mb-2">{{ errors.password }}</div>
         {% endif %}
       </div>
-      <button class="btn btn-success w-100 mb-2" type="submit" style="font-weight: 600;">Login</button>
+      <button
+        class="btn btn-success w-100 mb-2"
+        type="submit"
+        style="font-weight: 600"
+      >
+        Login
+      </button>
     </form>
     <div class="text-center mt-2">
       <span class="text-muted">Don't have an account?</span>
@@ -36,6 +63,9 @@
 </div>
 {% endblock %} {% block script %}
 <!-- Optionally load Bootstrap Icons for input icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+/>
 <script src="{% static 'recipes/login.js' %}"></script>
 {% endblock %}

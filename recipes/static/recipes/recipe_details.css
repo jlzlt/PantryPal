@@ -95,7 +95,7 @@ h2 {
 
 /* --- Star Rating (Unified) --- */
 .rating-block-container {
-  width: 350px; /* Adjust as needed for your design */
+  width: 250px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;

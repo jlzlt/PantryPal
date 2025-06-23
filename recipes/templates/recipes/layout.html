@@ -1,4 +1,5 @@
 {% load static %}
+{% load tz %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -118,5 +119,17 @@
     ></script>
     <script src="{% static 'recipes/layout.js' %}"></script>
     {% block script %} {% endblock %}
+
+    <footer class="footer mt-auto py-3 bg-light border-top" style="background: #f8f9fa;">
+      <div class="container text-center">
+        <span class="text-muted small">
+          &copy; {{ now|date:"Y" }} PantryPal. Made with <span style="color: #e25555;">&#10084;</span> using Django &amp; Bootstrap.
+          &nbsp;|&nbsp;
+          <a href="{% url 'about' %}" class="text-decoration-none text-success">About</a>
+          &nbsp;|&nbsp;
+          <a href="mailto:your@email.com" class="text-decoration-none text-success">Contact: pantrypal@pantrypal.com</a>
+        </span>
+      </div>
+    </footer>
   </body>
 </html>

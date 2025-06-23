@@ -1,0 +1,103 @@
+{% extends "recipes/layout.html" %} {% load static %} {% block title %}About
+PantryPal{% endblock %} {% block body %}
+<div class="auth-wrapper">
+  <div
+    class="about-card card shadow-lg p-4 mx-auto mt-5 mb-5"
+    style="max-width: 600px; border-radius: 1.5rem"
+  >
+    <div class="text-center mb-4">
+      <img
+        src="{% static 'recipes/logo.png' %}"
+        alt="Logo"
+        class="mb-2"
+        style="height: 48px"
+      />
+      <h2 class="mb-1" style="font-weight: 700">About PantryPal</h2>
+    </div>
+    <p class="mb-3">
+      PantryPal helps you discover, save, and share delicious recipes tailored
+      to your pantry. Our mission is to make home cooking easy, creative, and
+      fun for everyone.
+    </p>
+    <h5 class="mt-4" style="font-weight: 600">How It Works</h5>
+    <div class="step-guide mb-3">
+      <div class="step d-flex align-items-start mb-4">
+        <div
+          class="step-number d-flex align-items-center justify-content-center me-3"
+          style="
+            min-width: 2.7em;
+            min-height: 2.7em;
+            font-size: 1.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00b09b 60%, #96c93d 100%);
+            color: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(44, 62, 80, 0.1);
+          "
+        >
+          1
+        </div>
+        <div>
+          <strong>Generate a recipe:</strong><br />
+          Enter the ingredients you have on hand in the Home page. PantryPal's
+          smart engine will suggest creative, delicious recipes you can make
+          right now. Use filters to refine your results by time, difficulty, or
+          dietary needs.
+        </div>
+      </div>
+      <div class="step d-flex align-items-start mb-4">
+        <div
+          class="step-number d-flex align-items-center justify-content-center me-3"
+          style="
+            min-width: 2.7em;
+            min-height: 2.7em;
+            font-size: 1.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00b09b 60%, #96c93d 100%);
+            color: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(44, 62, 80, 0.1);
+          "
+        >
+          2
+        </div>
+        <div>
+          <strong>Save a recipe:</strong><br />
+          Click the
+          <span style="color: #198754; font-weight: 600">Save</span> button on
+          any recipe you like. Your saved recipes are always available in your
+          personal collection, so you can revisit your favorites anytime.
+        </div>
+      </div>
+      <div class="step d-flex align-items-start mb-2">
+        <div
+          class="step-number d-flex align-items-center justify-content-center me-3"
+          style="
+            min-width: 2.7em;
+            min-height: 2.7em;
+            font-size: 1.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00b09b 60%, #96c93d 100%);
+            color: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(44, 62, 80, 0.1);
+          "
+        >
+          3
+        </div>
+        <div>
+          <strong>Share to community:</strong><br />
+          Proud of your creation? Share it with the PantryPal community! Click
+          <span style="color: #8e44ad; font-weight: 600">Share</span> to inspire
+          others and see what recipes are trending in the Shared section.
+        </div>
+      </div>
+    </div>
+    <div class="mt-4">
+      <strong>Contact:</strong>
+      <a href="mailto:your@email.com">your@email.com</a>
+    </div>
+    <div class="mt-2 text-muted small">Built with Django &amp; Bootstrap.</div>
+  </div>
+</div>
+{% endblock %}

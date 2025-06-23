@@ -234,7 +234,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (ratingContainer) {
     const sharedId = ratingContainer.dataset.sharedId;
-    const stars = Array.from(ratingContainer.querySelectorAll(".star-input")); // left-to-right
+    let stars = Array.from(ratingContainer.querySelectorAll(".star-input")); // left-to-right
+
+    function updateSelectedStars(value) {
+      stars.forEach((star, idx) => {
+        star.classList.toggle("selected", idx < value);
+      });
+    }
 
     stars.forEach((star, idx) => {
       const value = idx + 1;
@@ -266,58 +272,73 @@ document.addEventListener("DOMContentLoaded", function () {
           const data = await response.json();
 
           if (data.success) {
-            // Replace the star-rating-input with static stars
-            const staticStars = document.createElement("div");
-            staticStars.className = "star-rating-input";
-            for (let i = 1; i <= 5; i++) {
-              const star = document.createElement("span");
-              star.className = i <= value ? "star" : "star star-empty";
-              star.innerHTML = "&#9733;";
-              staticStars.appendChild(star);
-            }
-            ratingContainer.parentNode.replaceChild(staticStars, ratingContainer);
-
+            // Update selected state, keep interactive stars
+            updateSelectedStars(value);
             // Hide feedback text entirely
-            feedback.classList.add("hidden");
+            if (feedback) feedback.classList.add("hidden");
 
             // Update community stars (Rating: ...)
             const communityStars = document.querySelector(".community-stars");
             if (communityStars) {
-              // Remove all children
               communityStars.innerHTML = "";
-              // Add new stars based on new average rating
               let avg = parseFloat(data.average_rating);
               for (let i = 1; i <= 5; i++) {
+                let fill = Math.max(0, Math.min(1, avg - (i - 1)));
                 let starEl = document.createElement("span");
-                if (avg >= i) {
+                if (fill === 1) {
                   starEl.className = "star";
                   starEl.innerHTML = "&#9733;";
-                } else if (avg >= i - 0.5) {
-                  starEl.className = "half-star";
-                  starEl.innerHTML = "&#9733;";
-                } else {
+                } else if (fill === 0) {
                   starEl.className = "star star-empty";
                   starEl.innerHTML = "&#9733;";
+                } else {
+                  starEl.className = "star partial-star";
+                  starEl.innerHTML = "&#9733;";
+                  starEl.style.setProperty('--star-fill', `${(fill * 100).toFixed(0)}%`);
                 }
                 communityStars.appendChild(starEl);
               }
-              // Create or update rating number and total votes
-              let ratingNumber = document.createElement("span");
-              ratingNumber.className = "rating-number";
-              ratingNumber.textContent = data.average_rating;
-              let totalVotes = document.createElement("span");
-              totalVotes.className = "total-votes";
-              totalVotes.textContent = `(${data.total_votes} vote${data.total_votes === 1 ? '' : 's'})`;
-              communityStars.appendChild(ratingNumber);
-              communityStars.appendChild(totalVotes);
+            }
+            // Update rating number and total votes in .rating-numbers
+            let ratingNumbers = document.querySelector('.rating-numbers');
+            if (ratingNumbers) {
+              ratingNumbers.innerHTML = '';
+              const ratingNumber = document.createElement('span');
+              ratingNumber.className = 'rating-number';
+              ratingNumber.textContent = parseFloat(data.average_rating).toFixed(1);
+              const totalVotes = document.createElement('span');
+              totalVotes.className = 'total-votes';
+              totalVotes.textContent = ` (${data.total_votes} vote${data.total_votes === 1 ? '' : 's'})`;
+              ratingNumbers.appendChild(ratingNumber);
+              ratingNumbers.appendChild(totalVotes);
+            } else {
+              // If .rating-numbers doesn't exist, create and insert it after .community-stars
+              const starsAndNumbers = communityStars?.parentElement;
+              if (starsAndNumbers) {
+                ratingNumbers = document.createElement('div');
+                ratingNumbers.className = 'rating-numbers';
+                const ratingNumber = document.createElement('span');
+                ratingNumber.className = 'rating-number';
+                ratingNumber.textContent = parseFloat(data.average_rating).toFixed(1);
+                const totalVotes = document.createElement('span');
+                totalVotes.className = 'total-votes';
+                totalVotes.textContent = ` (${data.total_votes} vote${data.total_votes === 1 ? '' : 's'})`;
+                ratingNumbers.appendChild(ratingNumber);
+                ratingNumbers.appendChild(totalVotes);
+                starsAndNumbers.appendChild(ratingNumbers);
+              }
             }
           } else {
-            feedback.textContent = data.error || "Failed to rate.";
-            feedback.classList.remove("hidden");
+            if (feedback) {
+              feedback.textContent = data.error || "Failed to rate.";
+              feedback.classList.remove("hidden");
+            }
           }
         } catch (err) {
-          feedback.textContent = "Error submitting rating.";
-          feedback.classList.remove("hidden");
+          if (feedback) {
+            feedback.textContent = "Error submitting rating.";
+            feedback.classList.remove("hidden");
+          }
           console.error("Rating error:", err);
         }
       });

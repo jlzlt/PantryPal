@@ -1,6 +1,22 @@
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
 body {
-  background: linear-gradient(135deg, #f4f6f9, #d9e4f5, #c2d4f2);
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  background: linear-gradient(135deg, #f4f6f9, #d9e4f5, #c2d4f2);
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+.body {
+  flex: 1 0 auto;
+}
+.footer {
+  flex-shrink: 0;
 }
 
 .logo-img {
@@ -201,7 +217,7 @@ button[disabled] {
 }
 
 #backToTopBtn {
-  display: flex; /* always flex for centering */
+  display: flex;
   align-items: center;
   justify-content: center;
   position: fixed;
@@ -210,7 +226,7 @@ button[disabled] {
   z-index: 1000;
   border: none;
   outline: none;
-  background-color: #5a7fa8; /* muted blue */
+  background-color: #5a7fa8;
   color: white;
   cursor: pointer;
   padding: 14px;
@@ -221,8 +237,8 @@ button[disabled] {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s ease;
 
-  opacity: 0; /* hide initially */
-  pointer-events: none; /* prevent clicks when hidden */
+  opacity: 0;
+  pointer-events: none;
   transition: opacity 0.3s ease;
 }
 
@@ -239,6 +255,16 @@ button[disabled] {
   background: #fff;
   border-radius: 1.5rem;
   box-shadow: 0 4px 32px rgba(44, 62, 80, 0.08);
+  align-self: flex-start; /* Only as tall as content */
+}
+
+/* Make the activity card stretch */
+/* Target the second .auth-card in the profile page layout */
+.auth-wrapper .row > .col-lg-5:last-child .auth-card {
+  flex: 1 1 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
 }
 
 .auth-link {

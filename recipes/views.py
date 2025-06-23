@@ -459,7 +459,7 @@ def shared(request):
 
 
 def about(request):
-    pass
+    return render(request, 'recipes/about.html')
 
 
 @login_required

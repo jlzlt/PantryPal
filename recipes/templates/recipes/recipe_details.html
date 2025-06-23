@@ -59,17 +59,9 @@
             <span class="label-align user-rating-label">Your rating:</span>
             <div class="stars-and-numbers">
               <div class="stars-container">
-                <div class="star-rating-input"{% if not user_rating %} data-shared-id="{{ shared_recipe.id }}"{% endif %}>
+                <div class="star-rating-input" data-shared-id="{{ shared_recipe.id }}">
                   {% for i in "12345" %}
-                    {% if user_rating %}
-                      {% if user_rating >= i|add:"0" %}
-                        <span class="star">&#9733;</span>
-                      {% else %}
-                        <span class="star star-empty">&#9733;</span>
-                      {% endif %}
-                    {% else %}
-                      <span class="star-input" data-value="{{ i }}">&#9733;</span>
-                    {% endif %}
+                    <span class="star-input{% if user_rating and user_rating >= i|add:"0" %} selected{% endif %}" data-value="{{ i }}">&#9733;</span>
                   {% endfor %}
                 </div>
               </div>

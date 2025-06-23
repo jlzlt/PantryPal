@@ -1,29 +1,58 @@
-{% extends 'recipes/layout.html' %}
-{% load static %}
-{% block title %}Profile{% endblock %}
+{% extends 'recipes/layout.html' %} {% load static %} 
+{% block title %}Profile{%endblock %} 
 {% block body %}
-<div class="auth-wrapper" style="min-height: 100vh;">
+<div class="auth-wrapper">
   <div class="container py-5">
     <div class="row justify-content-center g-4">
       <div class="col-12 col-lg-5 d-flex">
-        <div class="auth-card card shadow-lg p-4 w-100" style="border-radius: 1.5rem;">
+        <div
+          class="auth-card card shadow-lg p-4 w-100"
+          style="border-radius: 1.5rem"
+        >
           <div class="text-center mb-4">
-            <img src="{% static 'recipes/logo.png' %}" alt="Logo" class="mb-2" style="height: 48px;">
-            <h2 class="mb-1" style="font-weight: 700;">Profile for <span class="fw-bold text-primary" style="font-family: monospace;">{{ user.username }}</span></h2>
+            <img
+              src="{% static 'recipes/logo.png' %}"
+              alt="Logo"
+              class="mb-2"
+              style="height: 48px"
+            />
+            <h2 class="mb-1" style="font-weight: 700">
+              Profile for
+              <span class="fw-bold text-primary" style="font-family: monospace"
+                >{{ user.username }}</span
+              >
+            </h2>
             <p class="text-muted mb-0">Manage your PantryPal account</p>
           </div>
           <form method="post" class="mb-4">
             {% csrf_token %}
             <div class="mb-3">
               <label for="id_email" class="form-label">Email</label>
-              <input type="email" name="email" class="form-control" id="id_email" value="{{ email_form.email.value|default:user.email }}" required />
+              <input
+                type="email"
+                name="email"
+                class="form-control"
+                id="id_email"
+                value="{{ email_form.email.value|default:user.email }}"
+                required
+              />
               {% if email_form.email.errors %}
-                <div class="text-danger small">{{ email_form.email.errors.0 }}</div>
+              <div class="text-danger small">
+                {{ email_form.email.errors.0 }}
+              </div>
               {% endif %}
             </div>
-            <button type="submit" name="email_submit" class="btn btn-success w-100 mb-2">Save Email</button>
+            <button
+              type="submit"
+              name="email_submit"
+              class="btn btn-success w-100 mb-2"
+            >
+              Save Email
+            </button>
             {% if email_success %}
-              <div class="alert alert-success mt-3">Email updated successfully!</div>
+            <div class="alert alert-success mt-3">
+              Email updated successfully!
+            </div>
             {% endif %}
           </form>
           <hr />
@@ -31,67 +60,129 @@
           <form method="post">
             {% csrf_token %}
             <div class="mb-3">
-              <label for="id_old_password" class="form-label">Current password</label>
-              <input type="password" name="old_password" class="form-control" id="id_old_password" autocomplete="current-password" required />
+              <label for="id_old_password" class="form-label"
+                >Current password</label
+              >
+              <input
+                type="password"
+                name="old_password"
+                class="form-control"
+                id="id_old_password"
+                autocomplete="current-password"
+                required
+              />
               {% if password_form.old_password.errors %}
-                <div class="text-danger small">{{ password_form.old_password.errors.0 }}</div>
+              <div class="text-danger small">
+                {{ password_form.old_password.errors.0 }}
+              </div>
               {% endif %}
             </div>
             <div class="mb-3">
-              <label for="id_new_password1" class="form-label">New password</label>
-              <input type="password" name="new_password1" class="form-control" id="id_new_password1" autocomplete="new-password" required />
+              <label for="id_new_password1" class="form-label"
+                >New password</label
+              >
+              <input
+                type="password"
+                name="new_password1"
+                class="form-control"
+                id="id_new_password1"
+                autocomplete="new-password"
+                required
+              />
               {% if password_form.new_password1.errors %}
-                <div class="text-danger small">{{ password_form.new_password1.errors.0 }}</div>
+              <div class="text-danger small">
+                {{ password_form.new_password1.errors.0 }}
+              </div>
               {% endif %}
             </div>
             <div class="mb-3">
-              <label for="id_new_password2" class="form-label">Confirm new password</label>
-              <input type="password" name="new_password2" class="form-control" id="id_new_password2" autocomplete="new-password" required />
+              <label for="id_new_password2" class="form-label"
+                >Confirm new password</label
+              >
+              <input
+                type="password"
+                name="new_password2"
+                class="form-control"
+                id="id_new_password2"
+                autocomplete="new-password"
+                required
+              />
               {% if password_form.new_password2.errors %}
-                <div class="text-danger small">{{ password_form.new_password2.errors.0 }}</div>
+              <div class="text-danger small">
+                {{ password_form.new_password2.errors.0 }}
+              </div>
               {% endif %}
             </div>
-            <button type="submit" name="password_submit" class="btn btn-primary w-100">Change Password</button>
+            <button
+              type="submit"
+              name="password_submit"
+              class="btn btn-primary w-100"
+            >
+              Change Password
+            </button>
             {% if password_success %}
-              <div class="alert alert-success mt-3">Password updated successfully!</div>
+            <div class="alert alert-success mt-3">
+              Password updated successfully!
+            </div>
             {% endif %}
           </form>
         </div>
       </div>
       <div class="col-12 col-lg-5 d-flex">
-        <div class="auth-card card shadow-lg p-4 w-100" style="border-radius: 1.5rem;">
-          <h5 class="mb-3 text-center" style="font-weight: 700;">Activity Stream</h5>
+        <div
+          class="auth-card card shadow-lg p-4 w-100"
+          style="border-radius: 1.5rem"
+        >
+          <h5 class="mb-3 text-center" style="font-weight: 700">
+            Activity Stream
+          </h5>
           {% if activities %}
-            <div class="activity-timeline">
-              {% for activity in activities %}
-                <div class="activity-item d-flex align-items-start mb-4 position-relative">
-                  <div class="timeline-dot"></div>
-                  <div class="activity-content card p-2 w-100 ms-4" style="background: #f8f9fa; border-radius: 0.75rem; box-shadow: 0 2px 8px rgba(44,62,80,0.07);">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="text-muted small">{{ activity.timestamp|date:"Y-m-d H:i" }}</span>
-                    </div>
-                    <div>
-                      {% if activity.action == 'generated' %}
-                        Generated <span class="fw-semibold">{{ activity.details }}</span>
-                      {% elif activity.action == 'saved' %}
-                        Saved <span class="fw-semibold text-success">{{ activity.details }}</span>
-                      {% elif activity.action == 'shared' %}
-                        Shared <span class="fw-semibold" style="color: #8e44ad;">{{ activity.details }}</span>
-                      {% else %}
-                        {{ activity.action }} {{ activity.details }}
-                      {% endif %}
-                    </div>
-                  </div>
+          <div class="activity-timeline">
+            {% for activity in activities %}
+            <div
+              class="activity-item d-flex align-items-start mb-4 position-relative"
+            >
+              <div class="timeline-dot"></div>
+              <div
+                class="activity-content card p-2 w-100 ms-4"
+                style="
+                  background: #f8f9fa;
+                  border-radius: 0.75rem;
+                  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+                "
+              >
+                <div
+                  class="d-flex justify-content-between align-items-center mb-1"
+                >
+                  <span class="text-muted small"
+                    >{{ activity.timestamp|date:"Y-m-d H:i" }}</span
+                  >
                 </div>
-              {% endfor %}
-              <div class="timeline-vertical"></div>
+                <div>
+                  {% if activity.action == 'generated' %} Generated
+                  <span class="fw-semibold">{{ activity.details }}</span> 
+                  {% elif activity.action == 'saved' %} Saved
+                  <span class="fw-semibold text-success"
+                    >{{ activity.details }}</span
+                  >
+                  {% elif activity.action == 'shared' %} Shared
+                  <span class="fw-semibold" style="color: #8e44ad"
+                    >{{ activity.details }}</span
+                  >
+                  {% else %} {{ activity.action }} {{ activity.details }} 
+                  {% endif %}
+                </div>
+              </div>
             </div>
+            {% endfor %}
+            <div class="timeline-vertical"></div>
+          </div>
           {% else %}
-            <div class="text-center text-muted">No activity yet.</div>
+          <div class="text-center text-muted">No activity yet.</div>
           {% endif %}
         </div>
       </div>
     </div>
   </div>
 </div>
-{% endblock %} 
+{% endblock %}
