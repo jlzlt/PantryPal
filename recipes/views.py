@@ -386,11 +386,6 @@ def shared(request):
     if q:
         shared_recipes_qs = shared_recipes_qs.filter(recipe__title__icontains=q)
 
-    # Filter by tag (DB filtering)
-    active_filters = request.GET.getlist("filter")
-    for f in active_filters:
-        shared_recipes_qs = shared_recipes_qs.filter(recipe__tags__name=f)
-
     # Sort
     sort = request.GET.get("sort", "popular")
     if sort == "newest":
@@ -406,6 +401,18 @@ def shared(request):
     else:
         shared_recipes_qs = shared_recipes_qs.order_by("-shared_at")
 
+    # Convert to list for Python-side filtering
+    shared_recipes = list(shared_recipes_qs)
+
+    # Filter by tag (Python-side filtering)
+    active_filters = request.GET.getlist("filter")
+    if active_filters:
+        shared_recipes = [
+            sr
+            for sr in shared_recipes
+            if all(f in (sr.recipe.tags or []) for f in active_filters)
+        ]
+
     # Pagination
     page = request.GET.get("page", 1)
     try:
@@ -416,10 +423,8 @@ def shared(request):
     ITEMS_PER_PAGE = 12
     start_idx = (page - 1) * ITEMS_PER_PAGE
     end_idx = start_idx + ITEMS_PER_PAGE
-
-    recipes_slice = list(shared_recipes_qs[start_idx : end_idx + 1])
-    has_more = len(recipes_slice) > ITEMS_PER_PAGE
-    current_page_recipes = recipes_slice[:ITEMS_PER_PAGE]
+    has_more = end_idx < len(shared_recipes)
+    current_page_recipes = shared_recipes[start_idx:end_idx]
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         html = render_to_string(
