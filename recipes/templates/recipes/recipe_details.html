@@ -29,22 +29,26 @@
         <div class="community-rating-block">
           <div class="star-row">
             <span class="label-align rating-label">Rating:</span>
-            <div class="community-stars">
-              {% load recipe_extras %}
-              {% for fill in average_rating|star_fill_percents %}
-                {% if fill == 1.0 %}
-                  <span class="star">&#9733;</span>
-                {% elif fill == 0.0 %}
-                  <span class="star star-empty">&#9733;</span>
-                {% else %}
-                  <span class="star partial-star" style="--star-fill: '{{ fill|mul:100|floatformat:0 }}%';">&#9733;</span>
-                {% endif %}
-              {% endfor %}
+            <div class="stars-and-numbers">
+              <div class="stars-container">
+                {% load recipe_extras %}
+                {% for fill in average_rating|star_fill_percents %}
+                  {% if fill == 1.0 %}
+                    <span class="star">&#9733;</span>
+                  {% elif fill == 0.0 %}
+                    <span class="star star-empty">&#9733;</span>
+                  {% else %}
+                    <span class="star partial-star" style="--star-fill: {{ fill|mul:100|floatformat:0 }}%">&#9733;</span>
+                  {% endif %}
+                {% endfor %}
+              </div>
               {% if average_rating %}
-                <span class="rating-number">{{ average_rating|default:"0.0" }}</span>
-                <span class="total-votes">
-                  ({{ total_votes|default:"0" }} vote{{ total_votes|default:"0"|pluralize }})
-                </span>
+                <div class="rating-numbers">
+                  <span class="rating-number">{{ average_rating|default:"0.0" }}</span>
+                  <span class="total-votes">
+                    ({{ total_votes|default:"0" }} vote{{ total_votes|default:"0"|pluralize }})
+                  </span>
+                </div>
               {% endif %}
             </div>
           </div>
@@ -53,18 +57,22 @@
         <div class="user-rating-block">
           <div class="star-row">
             <span class="label-align user-rating-label">Your rating:</span>
-            <div class="star-rating-input"{% if not user_rating %} data-shared-id="{{ shared_recipe.id }}"{% endif %}>
-              {% for i in "12345" %}
-                {% if user_rating %}
-                  {% if user_rating >= i|add:"0" %}
-                    <span class="star">&#9733;</span>
-                  {% else %}
-                    <span class="star star-empty">&#9733;</span>
-                  {% endif %}
-                {% else %}
-                  <span class="star-input" data-value="{{ i }}">&#9733;</span>
-                {% endif %}
-              {% endfor %}
+            <div class="stars-and-numbers">
+              <div class="stars-container">
+                <div class="star-rating-input"{% if not user_rating %} data-shared-id="{{ shared_recipe.id }}"{% endif %}>
+                  {% for i in "12345" %}
+                    {% if user_rating %}
+                      {% if user_rating >= i|add:"0" %}
+                        <span class="star">&#9733;</span>
+                      {% else %}
+                        <span class="star star-empty">&#9733;</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="star-input" data-value="{{ i }}">&#9733;</span>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
             </div>
           </div>
           {% if not user_rating %}

@@ -89,7 +89,7 @@ h2 {
   align-items: center;
   justify-content: center;
   gap: 0.4em;
-  margin-bottom: 0.5em;
+  margin-bottom: 0;
   flex-wrap: nowrap;
 }
 
@@ -99,21 +99,48 @@ h2 {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 4px; /* Reduced from 8px */
 }
 
 .star-row {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: 100px auto;
   align-items: center;
+  width: 100%;
+  gap: 0;
+}
+
+.stars-and-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.label-align {
+  text-align: right;
+  margin-right: 0.8em; /* Slightly reduced from 1em */
+  font-size: 0.95em;
+  color: #888;
+  font-weight: 500;
+}
+
+.stars-container {
+  display: inline-flex;
+  gap: 4px;
 }
 
 .community-stars,
 .star-rating-input {
   display: flex;
-  flex-direction: row;
   gap: 4px;
   align-items: center;
+}
+
+.rating-numbers {
+  white-space: nowrap;
+  grid-column: 3;
+  text-align: left;
+  justify-self: start;
 }
 
 .star,
@@ -121,8 +148,6 @@ h2 {
   font-size: 1.4rem;
   color: #e0ece6;
   line-height: 1;
-  margin: 0 2px 0 0;
-  /* Make community stars non-clickable, no pointer cursor */
   cursor: default;
   transition: color 0.2s;
 }
@@ -174,7 +199,6 @@ h2 {
   font-weight: 600;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   vertical-align: middle;
-  margin-left: 0.3em;
   white-space: nowrap;
 }
 
@@ -391,21 +415,10 @@ h2 {
   }
 }
 
-.label-align {
-  display: inline-block;
-  min-width: 90px;
-  text-align: right;
-  margin-right: 0.5em;
-  font-size: 0.95em;
-  color: #888;
-  font-weight: 500;
-}
-
 .partial-star {
   font-size: 1.4rem;
   color: #e0ece6;
   line-height: 1;
-  margin: 0 2px 0 0;
   position: relative;
   display: inline-block;
   background: linear-gradient(

@@ -235,12 +235,6 @@ button[disabled] {
   background-color: #486a8e;
 }
 
-/* Auth (login/register) card styles */
-.auth-wrapper {
-  /* background: linear-gradient(135deg, #eaf6ef 0%, #e3eafc 100%); */
-  /* min-height: 100vh; */
-}
-
 .auth-card {
   background: #fff;
   border-radius: 1.5rem;
