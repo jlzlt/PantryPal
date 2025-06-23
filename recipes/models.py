@@ -4,6 +4,8 @@ from datetime import timedelta
 from django.utils.timezone import now
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+User = AbstractUser
+
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -114,3 +116,21 @@ class RecipeRating(models.Model):
 
     def __str__(self):
         return f"Rating {self.rating}/5 by {self.rater} on {self.recipe}"
+
+
+class UserActivity(models.Model):
+    ACTION_CHOICES = [
+        ('generated', 'Generated Recipes'),
+        ('saved', 'Saved Recipe'),
+        ('shared', 'Shared Recipe'),
+    ]
+    user = models.ForeignKey('recipes.User', on_delete=models.CASCADE, related_name='activities')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    action = models.CharField(max_length=32, choices=ACTION_CHOICES)
+    details = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.timestamp} {self.user.username} {self.action} {self.details}"

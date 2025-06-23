@@ -17,6 +17,7 @@ from .models import (
     SavedRecipe,
     SharedRecipe,
     RecipeRating,
+    UserActivity,
 )
 from openai import OpenAI
 from .constants import (
@@ -215,6 +216,13 @@ def index(request):
         # If no recipes generated, set recipes to None to show error alert on frontend
         if not recipes:
             recipes = None
+        else:
+            # Log activity for generated recipes
+            UserActivity.objects.create(
+                user=request.user,
+                action='generated',
+                details=f"{len(recipes)} recipes"
+            )
 
     # AJAX response for fetch()
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
@@ -606,6 +614,12 @@ def save_recipe(request):
             return JsonResponse(
                 {"status": "exists", "message": "Recipe already saved."}
             )
+        # Log activity for saving recipe
+        UserActivity.objects.create(
+            user=request.user,
+            action='saved',
+            details=recipe.title
+        )
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
@@ -719,6 +733,12 @@ def share_recipe(request):
         return redirect("recipe_details", recipe_id=recipe.id)
     
     SharedRecipe.objects.create(recipe=recipe, author=request.user)
+    # Log activity for sharing recipe
+    UserActivity.objects.create(
+        user=request.user,
+        action='shared',
+        details=recipe.title
+    )
     messages.success(request, "Recipe shared with the community!")
     return redirect("recipe_details", recipe_id=recipe.id)
 
@@ -798,6 +818,9 @@ def profile(request):
     password_form = DevPasswordChangeForm(user)
     email_success = password_success = False
 
+    # Get the latest 20 activities for the user
+    activities = UserActivity.objects.filter(user=user).order_by('-timestamp')[:20]
+
     if request.method == 'POST':
         if 'email_submit' in request.POST:
             email_form = EmailForm(request.POST, instance=user)
@@ -817,4 +840,5 @@ def profile(request):
         'password_form': password_form,
         'email_success': email_success,
         'password_success': password_success,
+        'activities': activities,
     })
