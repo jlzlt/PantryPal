@@ -45,16 +45,8 @@ document.addEventListener("DOMContentLoaded", function () {
   function handleScroll() {
     if (isLoading || !hasMore) return;
 
-    // Get the loading spinner element
-    const loadingSpinner = document.querySelector('.loading-spinner');
-    if (!loadingSpinner) return;
-
-    // Get the position of the loading spinner
-    const spinnerRect = loadingSpinner.getBoundingClientRect();
-    const spinnerBottom = spinnerRect.bottom;
-
-    // Check if the spinner is visible in the viewport
-    if (spinnerBottom <= window.innerHeight) {
+    // Check if user has scrolled to the bottom of the page
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 2) {
       loadMoreRecipes();
     }
   }
