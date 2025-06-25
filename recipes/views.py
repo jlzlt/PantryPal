@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.http import JsonResponse, HttpResponseRedirect
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, ExpressionWrapper, F, FloatField
 from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
@@ -404,11 +404,15 @@ def shared(request):
     elif sort == "oldest":
         shared_recipes_qs = shared_recipes_qs.order_by("recipe__created_at")
     elif sort == "popular":
-        shared_recipes_qs = shared_recipes_qs.order_by("-num_ratings", "-shared_at")
-    elif sort == "top_rated":
         shared_recipes_qs = shared_recipes_qs.annotate(
             avg_rating=Avg("ratings__rating")
-        ).order_by("-avg_rating", "-shared_at")
+        ).order_by("-num_ratings", "-avg_rating", "-shared_at")
+    elif sort == "top_rated":
+        MIN_VOTES = 2  # Only show recipes with at least 2 votes
+        shared_recipes_qs = shared_recipes_qs.annotate(
+            avg_rating=Avg("ratings__rating"),
+            vote_count=Count("ratings"),
+        ).filter(vote_count__gte=MIN_VOTES).order_by('-avg_rating', '-vote_count', '-shared_at')
     else:
         shared_recipes_qs = shared_recipes_qs.order_by("-shared_at")
 
@@ -517,6 +521,14 @@ def saved(request):
     )
     avg_rating_dict = {recipe_id: (avg or 0) for recipe_id, avg in avg_ratings_qs}
 
+    # Query vote counts for these recipes across their shared versions
+    vote_counts_qs = (
+        Recipe.objects.filter(id__in=current_recipe_ids)
+        .annotate(vote_count=Count("shared_versions__ratings"))
+        .values_list("id", "vote_count")
+    )
+    vote_count_dict = {recipe_id: (count or 0) for recipe_id, count in vote_counts_qs}
+
     shared_recipe_ids = set(SharedRecipe.objects.values_list("recipe_id", flat=True))
 
     # AJAX request returns partial HTML
@@ -527,6 +539,7 @@ def saved(request):
                 "saved_recipes": current_page_recipes,
                 "shared_recipe_ids": shared_recipe_ids,
                 "avg_rating_dict": avg_rating_dict,
+                "vote_count_dict": vote_count_dict,
             },
             request=request,
         )
@@ -543,6 +556,7 @@ def saved(request):
             "TAGS": TAGS,
             "shared_recipe_ids": shared_recipe_ids,
             "avg_rating_dict": avg_rating_dict,
+            "vote_count_dict": vote_count_dict,
             "has_more": has_more,
         },
     )

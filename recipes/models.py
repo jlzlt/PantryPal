@@ -89,6 +89,9 @@ class SharedRecipe(models.Model):
             return None
         return round(sum(r.rating for r in ratings) / len(ratings), 1)
 
+    def get_total_votes(self):
+        return self.ratings.count()
+
 
 class RecipeComment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -22,8 +22,8 @@
       {% if saved_recipe.recipe.id in shared_recipe_ids %}
       <div class="mb-2 d-flex align-items-center">
         <!-- prettier-ignore -->
-        {% with rating=avg_rating_dict|dict_get:saved_recipe.recipe.id %}
-        <div class="mb-2 d-flex align-items-center">
+        {% with rating=avg_rating_dict|dict_get:saved_recipe.recipe.id votes=vote_count_dict|dict_get:saved_recipe.recipe.id %}
+        <span class="d-inline-flex align-items-center">
           {% for fill in rating|star_fill_percents %}
             {% if fill == 1.0 %}
               <span class="star">&#9733;</span>
@@ -33,7 +33,10 @@
               <span class="star partial-star" style="--star-fill: {{ fill|mul:100|floatformat:0 }}%">&#9733;</span>
             {% endif %}
           {% endfor %}
-        </div>
+          {% if votes > 0 %}
+            <span class="ms-2 text-muted small">{{ rating|floatformat:1 }} ({{ votes }})</span>
+          {% endif %}
+        </span>
         {% endwith %}
         <!-- prettier-ignore-end -->
       </div>

@@ -16,10 +16,9 @@ PantryPal{% endblock %} {% block body %}
     </div>
     <p class="mb-3">
       PantryPal helps you discover, save, and share delicious recipes tailored
-      to your pantry. Our mission is to make home cooking easy, creative, and
-      fun for everyone.
+      to your pantry.
     </p>
-    <h5 class="mt-4" style="font-weight: 600">How It Works</h5>
+    <h5 class="mt-4 mb-4" style="font-weight: 600">How It Works:</h5>
     <div class="step-guide mb-3">
       <div class="step d-flex align-items-start mb-4">
         <div
@@ -38,11 +37,14 @@ PantryPal{% endblock %} {% block body %}
           1
         </div>
         <div>
-          <strong>Generate a recipe:</strong><br />
-          Enter the ingredients you have on hand in the Home page. PantryPal's
-          smart engine will suggest creative, delicious recipes you can make
-          right now. Use filters to refine your results by time, difficulty, or
-          dietary needs.
+          <strong>Generate recipes:</strong>
+          <ul class="custom-bullet-list mb-0">
+            <li>Enter the ingredients you have on hand, or leave it empty for random suggestions.</li>
+            <li>Use filters to refine your results by time, difficulty, dietary needs, etc.</li>
+            <li>Enter the number of recipes you want.</li>
+            <li>PantryPal's smart engine will suggest creative, delicious recipes you can make right now.</li>
+            <li>Each suggested recipe will be portioned for 1 person. Multiply the ingredients by the number of people you are cooking for.</li>
+          </ul>
         </div>
       </div>
       <div class="step d-flex align-items-start mb-4">
@@ -95,9 +97,8 @@ PantryPal{% endblock %} {% block body %}
     </div>
     <div class="mt-4">
       <strong>Contact:</strong>
-      <a href="mailto:your@email.com">your@email.com</a>
+      <a href="mailto:your@email.com">pantrypal@pantrypal.com</a>
     </div>
-    <div class="mt-2 text-muted small">Built with Django &amp; Bootstrap.</div>
   </div>
 </div>
 {% endblock %}

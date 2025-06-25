@@ -326,3 +326,21 @@ button[disabled] {
 .activity-item:last-child {
   margin-bottom: 0 !important;
 }
+
+.custom-bullet-list {
+  list-style: none;
+  padding-left: 0;
+}
+.custom-bullet-list li {
+  position: relative;
+  padding-left: 2em;
+  margin-bottom: 0.5em;
+}
+.custom-bullet-list li::before {
+  content: "✔️";
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  font-size: 1.1em;
+  color: #00b09b;
+}
