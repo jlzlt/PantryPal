@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (isLoading || !hasMore) return;
 
     // Check if user has scrolled to the bottom of the page
-    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 2) {
+    if ((document.body.clientHeight + document.body.scrollTop) >= document.body.scrollHeight - 2) {
       loadMoreRecipes();
     }
   }
@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Add scroll event listener
-  window.addEventListener("scroll", handleScroll);
+  document.body.addEventListener("scroll", handleScroll);
 
   // Handle recipe removal
   recipeContainer.addEventListener("submit", (e) => {
