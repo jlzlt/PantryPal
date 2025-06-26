@@ -1,3 +1,4 @@
+/* --- General Layout --- */
 body {
   background: linear-gradient(135deg, #eaf6ef 0%, #e3eafc 100%);
 }
@@ -24,6 +25,7 @@ select {
   margin-bottom: 0.5rem;
 }
 
+/* --- Search & Filter --- */
 /* Search Form */
 .search-form {
   max-width: 350px;
@@ -96,7 +98,7 @@ select {
   border: 1.5px solid #b2d8c7;
 }
 
-/* Sort Dropdown */
+/* --- Sort Dropdown --- */
 .sort-form {
   min-width: 140px;
 }
@@ -131,7 +133,7 @@ select {
     no-repeat center/contain;
 }
 
-/* Recipe Cards */
+/* --- Recipe Cards --- */
 .row.g-4 {
   --bs-gutter-x: 1rem;
   --bs-gutter-y: 1.2rem;
@@ -180,7 +182,7 @@ select {
   color: #23423b;
 }
 
-/* Rating Stars */
+/* --- Rating Stars --- */
 .star {
   color: #f7b731;
   font-size: 1.08rem;
@@ -192,6 +194,23 @@ select {
   color: #e0ece6;
 }
 
+.partial-star {
+  font-size: 1.08rem;
+  color: #e0ece6;
+  line-height: 1;
+  margin-right: 2px;
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(
+    to right,
+    #f7b731 var(--star-fill, 0%),
+    #e0ece6 var(--star-fill, 0%)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .rating-number {
   font-size: 0.9rem;
   color: #666666;
@@ -201,7 +220,7 @@ select {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Card Buttons */
+/* --- Card Buttons --- */
 .view-btn,
 .remove-btn {
   border-radius: 999px;
@@ -234,7 +253,7 @@ select {
   border: 1.5px solid #f7b731;
 }
 
-/* Card Body and Timestamp */
+/* --- Card Body and Timestamp --- */
 .recipe-card .card-body {
   padding: 1rem;
   display: flex;
@@ -248,7 +267,6 @@ select {
   margin-top: 0.75rem;
   padding-top: 0.5rem;
   border-top: 1px solid #e9ecef;
-  text-align: center;
 }
 
 /* Modal */
@@ -307,21 +325,8 @@ select {
     min-height: 140px;
     max-height: 140px;
   }
-}
 
-.partial-star {
-  font-size: 1.08rem;
-  color: #e0ece6;
-  line-height: 1;
-  margin-right: 2px;
-  position: relative;
-  display: inline-block;
-  background: linear-gradient(
-    to right,
-    #f7b731 var(--star-fill, 0%),
-    #e0ece6 var(--star-fill, 0%)
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  .recipe-card {
+    max-width: none;
+  }
 }

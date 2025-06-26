@@ -1,0 +1,17 @@
+.auth-card {
+  max-width: 400px;
+  width: 100%;
+  border-radius: 1.5rem;
+}
+
+.auth-card img {
+  height: 48px;
+}
+
+.auth-card h2 {
+  font-weight: 700;
+}
+
+.btn-success {
+  font-weight: 600;
+}

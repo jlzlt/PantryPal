@@ -1,3 +1,4 @@
+/* --- Base Layout & Body --- */
 html,
 body {
   height: 100%;
@@ -19,6 +20,7 @@ body {
   flex: 1 0 auto;
 }
 
+/* --- Logo & Navbar --- */
 .logo-img {
   height: 5rem;
 }
@@ -45,6 +47,7 @@ body {
   box-shadow: 0 2px 8px rgba(44, 62, 80, 0.1);
 }
 
+/* --- Animations --- */
 @keyframes fadeSlideIn {
   0% {
     opacity: 0;
@@ -92,6 +95,7 @@ body {
   animation: fadeIn 1s ease forwards;
 }
 
+/* --- Suggestions Dropdown --- */
 .suggestions-list {
   max-height: 200px;
   overflow-y: auto;
@@ -107,11 +111,37 @@ body {
   background-color: #f0f0f0;
 }
 
+/* --- Auth Pages --- */
 .register,
 .login {
   margin: 1rem;
 }
 
+.auth-card {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 32px rgba(44, 62, 80, 0.08);
+  align-self: flex-start;
+}
+
+.auth-wrapper .row > .col-lg-5:last-child .auth-card {
+  flex: 1 1 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-link {
+  color: #00b09b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: text-decoration 0.2s;
+}
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/* --- Recipe Image Wrapper --- */
 .recipe-image-wrapper {
   width: 100%;
   padding-top: 66.66%; /* 3:2 aspect ratio */
@@ -166,7 +196,7 @@ body {
   /* linear-gradient(90deg, #2b5876, #4e4376) — navy blue to purple (rich and deep) */
 }
 
-/* Hover effect for checkboxes */
+/* --- Form Elements --- */
 .form-check-input:hover {
   cursor: pointer;
   transform: scale(1.1);
@@ -182,7 +212,6 @@ body {
   box-shadow: 0 0 0 0.25rem rgba(0, 176, 155, 0.25);
 }
 
-/* Combined hover effect (checkbox + label) */
 .form-check:hover .form-check-input {
   border-color: #00b09b;
 }
@@ -216,6 +245,7 @@ button[disabled] {
   opacity: 0.7;
 }
 
+/* --- Back to Top Button --- */
 #backToTopBtn {
   display: flex;
   align-items: center;
@@ -247,32 +277,6 @@ button[disabled] {
 
 #backToTopBtn:hover {
   background-color: #486a8e;
-}
-
-.auth-card {
-  background: #fff;
-  border-radius: 1.5rem;
-  box-shadow: 0 4px 32px rgba(44, 62, 80, 0.08);
-  align-self: flex-start; /* Only as tall as content */
-}
-
-/* Make the activity card stretch */
-/* Target the second .auth-card in the profile page layout */
-.auth-wrapper .row > .col-lg-5:last-child .auth-card {
-  flex: 1 1 0;
-  align-self: stretch;
-  display: flex;
-  flex-direction: column;
-}
-
-.auth-link {
-  color: #00b09b;
-  text-decoration: none;
-  font-weight: 500;
-  transition: text-decoration 0.2s;
-}
-.auth-link:hover {
-  text-decoration: underline;
 }
 
 /* Activity Timeline Styles */

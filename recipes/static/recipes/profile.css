@@ -1,0 +1,31 @@
+/* Styles for profile.html moved from inline */
+.auth-card {
+  border-radius: 1.5rem;
+}
+
+.auth-card img {
+  height: 48px;
+}
+
+.auth-card h2,
+.auth-card h5 {
+  font-weight: 700;
+}
+
+.profile-username {
+  font-family: monospace;
+}
+
+.activity-card {
+  border-radius: 1.5rem;
+}
+
+.activity-content {
+  background: #f8f9fa;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+}
+
+.shared-highlight {
+  color: #8e44ad;
+} 
