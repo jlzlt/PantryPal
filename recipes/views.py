@@ -1,15 +1,31 @@
+# Standard library imports
+import json
+import re
+import logging
+import urllib.parse
+import random
+import requests
+import hashlib
+
+# Third-party imports
+from openai import OpenAI
+
+# Django imports
+from django import forms
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm as DjangoPasswordChangeForm
 from django.core.files.base import ContentFile
+from django.db import IntegrityError
+from django.db.models import Count, Avg
 from django.http import JsonResponse, HttpResponseRedirect
-from django.db import IntegrityError, transaction
-from django.db.models import Count, Avg, ExpressionWrapper, F, FloatField
-from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.core.paginator import Paginator
+from django.views.decorators.http import require_GET, require_POST
+
+# Local app imports
 from .models import (
     User,
     GeneratedRecipe,
@@ -19,7 +35,6 @@ from .models import (
     RecipeRating,
     UserActivity,
 )
-from openai import OpenAI
 from .constants import (
     GROQ_API_KEY,
     GROQ_URL,
@@ -30,17 +45,6 @@ from .constants import (
     TAGS,
     DEFAULT_IMAGE_URL,
 )
-import json
-import re
-import logging
-import urllib.parse
-import random
-import requests
-import hashlib
-import ast
-from django import forms
-from django.contrib.auth.forms import PasswordChangeForm as DjangoPasswordChangeForm
-from django.contrib.auth.password_validation import validate_password
 
 
 def register(request):
@@ -162,6 +166,8 @@ def index(request):
         except (ValueError, TypeError):
             num_recipes = 1
 
+        num_recipes = max(1, min(num_recipes, 6))
+
         generated_titles = set()
         recipes = []
 
@@ -219,9 +225,7 @@ def index(request):
         else:
             # Log activity for generated recipes
             UserActivity.objects.create(
-                user=request.user,
-                action='generated',
-                details=f"{len(recipes)} recipes"
+                user=request.user, action="generated", details=f"{len(recipes)} recipes"
             )
 
     # AJAX response for fetch()
@@ -409,10 +413,14 @@ def shared(request):
         ).order_by("-num_ratings", "-avg_rating", "-shared_at")
     elif sort == "top_rated":
         MIN_VOTES = 2  # Only show recipes with at least 2 votes
-        shared_recipes_qs = shared_recipes_qs.annotate(
-            avg_rating=Avg("ratings__rating"),
-            vote_count=Count("ratings"),
-        ).filter(vote_count__gte=MIN_VOTES).order_by('-avg_rating', '-vote_count', '-shared_at')
+        shared_recipes_qs = (
+            shared_recipes_qs.annotate(
+                avg_rating=Avg("ratings__rating"),
+                vote_count=Count("ratings"),
+            )
+            .filter(vote_count__gte=MIN_VOTES)
+            .order_by("-avg_rating", "-vote_count", "-shared_at")
+        )
     else:
         shared_recipes_qs = shared_recipes_qs.order_by("-shared_at")
 
@@ -463,7 +471,7 @@ def shared(request):
 
 
 def about(request):
-    return render(request, 'recipes/about.html')
+    return render(request, "recipes/about.html")
 
 
 @login_required
@@ -585,7 +593,9 @@ def save_recipe(request):
         )
 
     # Try to find a GeneratedRecipe for this user and hash
-    gen_recipe = GeneratedRecipe.objects.filter(hash=recipe_hash, user=request.user).first()
+    gen_recipe = GeneratedRecipe.objects.filter(
+        hash=recipe_hash, user=request.user
+    ).first()
     recipe = None
     if gen_recipe:
         # Try to find an identical recipe already in Recipe
@@ -595,7 +605,7 @@ def save_recipe(request):
             image_file = None
             if gen_recipe.image_url:
                 try:
-                    response = requests.get(gen_recipe.image_url, timeout=10)
+                    response = requests.get(gen_recipe.image_url, timeout=5)
                     response.raise_for_status()
                     image_file = ContentFile(
                         response.content, name=f"{gen_recipe.hash}.jpg"
@@ -630,9 +640,7 @@ def save_recipe(request):
             )
         # Log activity for saving recipe
         UserActivity.objects.create(
-            user=request.user,
-            action='saved',
-            details=recipe.title
+            user=request.user, action="saved", details=recipe.title
         )
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
@@ -729,15 +737,15 @@ def share_recipe(request):
     if not recipe_id:
         messages.error(request, "No recipe specified to share.")
         return redirect("index")
-    
+
     recipe = get_object_or_404(Recipe, id=recipe_id)
-    
+
     # Check if already shared by any user
     already_shared = SharedRecipe.objects.filter(recipe=recipe).exists()
     if already_shared:
         messages.error(request, "This recipe has already been shared by another user.")
         return redirect("recipe_details", recipe_id=recipe.id)
-    
+
     # Check if already shared by this user (extra safety check)
     already_shared_by_user = SharedRecipe.objects.filter(
         recipe=recipe, author=request.user
@@ -745,13 +753,11 @@ def share_recipe(request):
     if already_shared_by_user:
         messages.info(request, "You have already shared this recipe.")
         return redirect("recipe_details", recipe_id=recipe.id)
-    
+
     SharedRecipe.objects.create(recipe=recipe, author=request.user)
     # Log activity for sharing recipe
     UserActivity.objects.create(
-        user=request.user,
-        action='shared',
-        details=recipe.title
+        user=request.user, action="shared", details=recipe.title
     )
     messages.success(request, "Recipe shared with the community!")
     return redirect("recipe_details", recipe_id=recipe.id)
@@ -778,16 +784,24 @@ def rate_recipe(request, shared_recipe_id):
 
                 # For AJAX requests, return JSON
                 if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                    avg = shared_recipe.ratings.aggregate(avg=Avg("rating"), count=Count("rating"))
-                    return JsonResponse({
-                        "success": True,
-                        "user_rating": rating_value,
-                        "average_rating": round(avg["avg"], 1) if avg["avg"] else None,
-                        "total_votes": avg["count"] or 0,
-                    })
+                    avg = shared_recipe.ratings.aggregate(
+                        avg=Avg("rating"), count=Count("rating")
+                    )
+                    return JsonResponse(
+                        {
+                            "success": True,
+                            "user_rating": rating_value,
+                            "average_rating": (
+                                round(avg["avg"], 1) if avg["avg"] else None
+                            ),
+                            "total_votes": avg["count"] or 0,
+                        }
+                    )
         except (ValueError, TypeError):
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                return JsonResponse({"success": False, "error": "Invalid rating value."}, status=400)
+                return JsonResponse(
+                    {"success": False, "error": "Invalid rating value."}, status=400
+                )
             pass  # Invalid input silently ignored or handle with a message
 
     # Fallback for non-AJAX POSTs
@@ -801,14 +815,16 @@ def remove_shared_recipe(request):
     if not recipe_id:
         messages.error(request, "No recipe specified to remove from shared.")
         return redirect("index")
-    
+
     recipe = get_object_or_404(Recipe, id=recipe_id)
-    shared_recipe = SharedRecipe.objects.filter(recipe=recipe, author=request.user).first()
-    
+    shared_recipe = SharedRecipe.objects.filter(
+        recipe=recipe, author=request.user
+    ).first()
+
     if not shared_recipe:
         messages.error(request, "You haven't shared this recipe.")
         return redirect("recipe_details", recipe_id=recipe.id)
-    
+
     shared_recipe.delete()
     messages.success(request, "Recipe removed from shared recipes!")
     return redirect("recipe_details", recipe_id=recipe.id)
@@ -817,13 +833,15 @@ def remove_shared_recipe(request):
 class EmailForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['email']
+        fields = ["email"]
+
 
 class DevPasswordChangeForm(DjangoPasswordChangeForm):
     def clean_new_password1(self):
-        password1 = self.cleaned_data.get('new_password1')
+        password1 = self.cleaned_data.get("new_password1")
         # Skip all validators in development mode
         return password1
+
 
 @login_required
 def profile(request):
@@ -833,26 +851,30 @@ def profile(request):
     email_success = password_success = False
 
     # Get the latest 20 activities for the user
-    activities = UserActivity.objects.filter(user=user).order_by('-timestamp')[:20]
+    activities = UserActivity.objects.filter(user=user).order_by("-timestamp")[:20]
 
-    if request.method == 'POST':
-        if 'email_submit' in request.POST:
+    if request.method == "POST":
+        if "email_submit" in request.POST:
             email_form = EmailForm(request.POST, instance=user)
             if email_form.is_valid():
                 email_form.save()
                 email_success = True
-        elif 'password_submit' in request.POST:
+        elif "password_submit" in request.POST:
             password_form = DevPasswordChangeForm(user, request.POST)
             if password_form.is_valid():
                 user = password_form.save()
                 update_session_auth_hash(request, user)  # Keep user logged in
                 password_success = True
 
-    return render(request, 'recipes/profile.html', {
-        'user': user,
-        'email_form': email_form,
-        'password_form': password_form,
-        'email_success': email_success,
-        'password_success': password_success,
-        'activities': activities,
-    })
+    return render(
+        request,
+        "recipes/profile.html",
+        {
+            "user": user,
+            "email_form": email_form,
+            "password_form": password_form,
+            "email_success": email_success,
+            "password_success": password_success,
+            "activities": activities,
+        },
+    )

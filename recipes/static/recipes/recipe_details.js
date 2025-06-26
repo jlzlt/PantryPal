@@ -23,10 +23,16 @@ document.addEventListener("DOMContentLoaded", function () {
   const shareForm = document.getElementById("share-form");
 
   // Remove share modal elements
-  const removeShareModal = document.getElementById("remove-share-confirm-modal");
+  const removeShareModal = document.getElementById(
+    "remove-share-confirm-modal"
+  );
   const removeShareForm = document.getElementById("remove-share-form");
-  const confirmRemoveShareBtn = document.getElementById("confirm-remove-share-btn");
-  const cancelRemoveShareBtn = document.getElementById("cancel-remove-share-btn");
+  const confirmRemoveShareBtn = document.getElementById(
+    "confirm-remove-share-btn"
+  );
+  const cancelRemoveShareBtn = document.getElementById(
+    "cancel-remove-share-btn"
+  );
 
   // Handle recipe removal form submission
   if (recipeContainer) {
@@ -98,8 +104,10 @@ document.addEventListener("DOMContentLoaded", function () {
           saveForm.className = "save-recipe-form";
           saveForm.innerHTML = `
             <input type="hidden" name="csrfmiddlewaretoken" value="${getCSRFToken()}">
-            <input type="hidden" name="recipe_hash" value="${form.querySelector('input[name=recipe_hash]').value}">
-            <button type="submit" class="btn view-btn" data-saved="false">
+            <input type="hidden" name="recipe_hash" value="${
+              form.querySelector("input[name=recipe_hash]").value
+            }">
+            <button type="submit" class="btn add-btn" data-saved="false">
               <span class="button-text">Save</span>
               <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
             </button>
@@ -186,7 +194,9 @@ document.addEventListener("DOMContentLoaded", function () {
           removeForm.className = "remove-recipe-form";
           removeForm.innerHTML = `
             <input type="hidden" name="csrfmiddlewaretoken" value="${getCSRFToken()}">
-            <input type="hidden" name="recipe_hash" value="${form.querySelector('input[name=recipe_hash]').value}">
+            <input type="hidden" name="recipe_hash" value="${
+              form.querySelector("input[name=recipe_hash]").value
+            }">
             <button type="submit" class="btn remove-btn" data-saved="true">
               <span class="button-text">Remove from Saved</span>
               <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
@@ -196,12 +206,17 @@ document.addEventListener("DOMContentLoaded", function () {
           // Add saved-timestamp footer
           const timestamp = document.createElement("div");
           timestamp.className = "saved-timestamp";
-          timestamp.textContent = `Saved ${new Date().toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}`;
-          document.querySelector(".button-group").insertAdjacentElement("afterend", timestamp);
+          timestamp.textContent = `Saved ${new Date().toLocaleDateString(
+            "en-US",
+            {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            }
+          )}`;
+          document
+            .querySelector(".button-group")
+            .insertAdjacentElement("afterend", timestamp);
         } else {
           alert(data.message || "Failed to save recipe.");
         }
@@ -294,35 +309,46 @@ document.addEventListener("DOMContentLoaded", function () {
                 } else {
                   starEl.className = "star partial-star";
                   starEl.innerHTML = "&#9733;";
-                  starEl.style.setProperty('--star-fill', `${(fill * 100).toFixed(0)}%`);
+                  starEl.style.setProperty(
+                    "--star-fill",
+                    `${(fill * 100).toFixed(0)}%`
+                  );
                 }
                 communityStars.appendChild(starEl);
               }
             }
             // Update rating number and total votes in .rating-numbers
-            let ratingNumbers = document.querySelector('.rating-numbers');
+            let ratingNumbers = document.querySelector(".rating-numbers");
             if (ratingNumbers) {
-              ratingNumbers.innerHTML = '';
-              const ratingNumber = document.createElement('span');
-              ratingNumber.className = 'rating-number';
-              ratingNumber.textContent = parseFloat(data.average_rating).toFixed(1);
-              const totalVotes = document.createElement('span');
-              totalVotes.className = 'total-votes';
-              totalVotes.textContent = ` (${data.total_votes} vote${data.total_votes === 1 ? '' : 's'})`;
+              ratingNumbers.innerHTML = "";
+              const ratingNumber = document.createElement("span");
+              ratingNumber.className = "rating-number";
+              ratingNumber.textContent = parseFloat(
+                data.average_rating
+              ).toFixed(1);
+              const totalVotes = document.createElement("span");
+              totalVotes.className = "total-votes";
+              totalVotes.textContent = ` (${data.total_votes} vote${
+                data.total_votes === 1 ? "" : "s"
+              })`;
               ratingNumbers.appendChild(ratingNumber);
               ratingNumbers.appendChild(totalVotes);
             } else {
               // If .rating-numbers doesn't exist, create and insert it after .community-stars
               const starsAndNumbers = communityStars?.parentElement;
               if (starsAndNumbers) {
-                ratingNumbers = document.createElement('div');
-                ratingNumbers.className = 'rating-numbers';
-                const ratingNumber = document.createElement('span');
-                ratingNumber.className = 'rating-number';
-                ratingNumber.textContent = parseFloat(data.average_rating).toFixed(1);
-                const totalVotes = document.createElement('span');
-                totalVotes.className = 'total-votes';
-                totalVotes.textContent = ` (${data.total_votes} vote${data.total_votes === 1 ? '' : 's'})`;
+                ratingNumbers = document.createElement("div");
+                ratingNumbers.className = "rating-numbers";
+                const ratingNumber = document.createElement("span");
+                ratingNumber.className = "rating-number";
+                ratingNumber.textContent = parseFloat(
+                  data.average_rating
+                ).toFixed(1);
+                const totalVotes = document.createElement("span");
+                totalVotes.className = "total-votes";
+                totalVotes.textContent = ` (${data.total_votes} vote${
+                  data.total_votes === 1 ? "" : "s"
+                })`;
                 ratingNumbers.appendChild(ratingNumber);
                 ratingNumbers.appendChild(totalVotes);
                 starsAndNumbers.appendChild(ratingNumbers);

@@ -103,7 +103,7 @@
       </div>
     </div>
 
-    <div class="button-group d-flex gap-2 justify-content-center">
+    <div class="button-group">
       {% if is_shared_by_user %}
         <form method="POST" action="{% url 'remove_shared_recipe' %}" id="remove-share-form">
           {% csrf_token %}
@@ -111,7 +111,7 @@
           <button type="submit" class="btn remove-btn" id="remove-share-btn">Remove from Shared</button>
         </form>
       {% elif not is_shared_by_anyone %}
-        <button class="btn view-btn" id="share-btn">Share</button>
+        <button class="btn add-btn" id="share-btn">Share</button>
       {% endif %}
       {% if saved_recipe %}
         <!-- Show Remove button if recipe is saved -->
@@ -140,7 +140,7 @@
         >
           {% csrf_token %}
           <input type="hidden" name="recipe_hash" value="{{ recipe.hash }}" />
-          <button type="submit" class="btn view-btn" data-saved="false">
+          <button type="submit" class="btn add-btn" data-saved="false">
             <span class="button-text">Save</span>
             <span
               class="spinner-border spinner-border-sm d-none"

@@ -26,7 +26,6 @@
   max-width: 600px;
   height: auto;
   border-radius: 8px;
-  margin-bottom: 20px;
   display: block;
   object-fit: cover;
   margin-left: auto;
@@ -76,30 +75,22 @@ h2 {
   margin-bottom: 1rem;
 }
 
+/* --- Community Rating Block --- */
+.rating-block-container {
+  width: 300px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .community-rating-block,
 .user-rating-block {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-}
-
-/* --- Community Rating Block (inline stars + rating + votes) --- */
-.community-rating-block {
-  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4em;
-  margin-bottom: 0;
-  flex-wrap: nowrap;
-}
-
-/* --- Star Rating (Unified) --- */
-.rating-block-container {
-  width: 250px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 4px; /* Reduced from 8px */
+  flex-wrap: wrap;
 }
 
 .star-row {
@@ -110,23 +101,18 @@ h2 {
   gap: 0;
 }
 
-.stars-and-numbers {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-}
-
 .label-align {
   text-align: right;
-  margin-right: 0.8em; /* Slightly reduced from 1em */
-  font-size: 0.95em;
+  margin-right: 0.8em;
+  font-size: 1em;
   color: #888;
   font-weight: 500;
 }
 
-.stars-container {
-  display: inline-flex;
-  gap: 4px;
+.stars-and-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
 }
 
 .community-stars,
@@ -138,7 +124,6 @@ h2 {
 
 .rating-numbers {
   white-space: nowrap;
-  grid-column: 3;
   text-align: left;
   justify-self: start;
 }
@@ -152,16 +137,8 @@ h2 {
   transition: color 0.2s;
 }
 
-/* For user rating stars only, keep cursor pointer */
-.user-rating-block .star-input {
-  cursor: pointer;
-}
-
-/* Star coloring logic */
 .star-input.selected,
-.star-input.hover,
-.star:not(.star-empty),
-.star-input:hover {
+.star:not(.star-empty) {
   color: #f7b731;
 }
 
@@ -169,29 +146,22 @@ h2 {
   color: #e0ece6;
 }
 
-/* Half star style - match .star size and margin */
-.half-star {
+.partial-star {
+  font-size: 1.4rem;
+  color: #e0ece6;
+  line-height: 1;
   position: relative;
   display: inline-block;
-  color: #e0ece6 !important;
-  font-size: 1.4rem;
-  line-height: 1;
-  margin: 0 2px 0 0;
-  vertical-align: middle;
-}
-.half-star::before {
-  content: "★";
-  position: absolute;
-  left: 0;
-  width: 50%;
-  height: 100%;
-  overflow: hidden;
-  color: #f7b731;
-  z-index: 1;
-  top: 0;
+  background: linear-gradient(
+    to right,
+    #f7b731 var(--star-fill, 0%),
+    #e0ece6 var(--star-fill, 0%)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* --- Rating Number & Total Votes --- */
 .rating-number,
 .total-votes {
   font-size: 0.9rem;
@@ -202,11 +172,8 @@ h2 {
   white-space: nowrap;
 }
 
-/* --- User Rating Block --- */
-.user-rating-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.user-rating-block .star-input {
+  cursor: pointer;
 }
 
 .user-rating {
@@ -251,18 +218,12 @@ h2 {
   white-space: nowrap;
 }
 
-/* --- Sections (Ingredients & Instructions) --- */
+/* --- Ingredients & Instructions --- */
 .recipe-sections {
   display: flex;
   flex-direction: column;
   gap: 30px;
   margin-bottom: 30px;
-}
-
-@media (min-width: 768px) {
-  .recipe-sections {
-    flex-direction: row;
-  }
 }
 
 .ingredients-section,
@@ -304,7 +265,7 @@ h2 {
   justify-content: center;
 }
 
-.view-btn,
+.add-btn,
 .remove-btn {
   border-radius: 999px;
   font-weight: 600;
@@ -319,7 +280,7 @@ h2 {
   white-space: nowrap;
 }
 
-.view-btn:hover {
+.add-btn:hover {
   background: #c6e7d6;
   box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
   border-color: #b2d8c7;
@@ -387,6 +348,23 @@ h2 {
 }
 
 /* --- Responsive Adjustments --- */
+@media (max-width: 400px) {
+  .community-rating-block {
+    gap: 4px;
+  }
+
+  .star-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stars-and-numbers {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
 @media (max-width: 576px) {
   .recipe-detail-container {
     padding: 10px;
@@ -409,24 +387,14 @@ h2 {
     width: 100%;
   }
 
-  .view-btn,
+  .add-btn,
   .remove-btn {
     width: 100%;
   }
 }
 
-.partial-star {
-  font-size: 1.4rem;
-  color: #e0ece6;
-  line-height: 1;
-  position: relative;
-  display: inline-block;
-  background: linear-gradient(
-    to right,
-    #f7b731 var(--star-fill, 0%),
-    #e0ece6 var(--star-fill, 0%)
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+@media (min-width: 768px) {
+  .recipe-sections {
+    flex-direction: row;
+  }
 }

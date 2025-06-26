@@ -27,15 +27,15 @@
         <!-- prettier-ignore -->
         {% with rating=shared_recipe.get_average_rating votes=shared_recipe.get_total_votes %}
         <span class="d-inline-flex align-items-center">
-          {% for fill in rating|star_fill_percents %}
-            {% if fill == 1.0 %}
-              <span class="star">&#9733;</span>
-            {% elif fill == 0.0 %}
-              <span class="star star-empty">&#9733;</span>
-            {% else %}
-              <span class="star partial-star" style="--star-fill: {{ fill|mul:100|floatformat:0 }}%">&#9733;</span>
-            {% endif %}
-          {% endfor %}
+        {% for fill in rating|star_fill_percents %}
+          {% if fill == 1.0 %}
+            <span class="star">&#9733;</span>
+          {% elif fill == 0.0 %}
+            <span class="star star-empty">&#9733;</span>
+          {% else %}
+            <span class="star partial-star" style="--star-fill: {{ fill|mul:100|floatformat:0 }}%">&#9733;</span>
+          {% endif %}
+        {% endfor %}
           {% if votes > 0 %}
             <span class="ms-2 text-muted small">{{ rating|floatformat:1 }} ({{ votes }})</span>
           {% endif %}

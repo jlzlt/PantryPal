@@ -192,21 +192,6 @@ select {
   color: #e0ece6;
 }
 
-.half-star {
-  position: relative;
-  display: inline-block;
-  color: #e0ece6;
-}
-
-.half-star::before {
-  content: "★";
-  position: absolute;
-  left: 0;
-  width: 50%;
-  overflow: hidden;
-  color: #f7b731;
-}
-
 .rating-number {
   font-size: 0.9rem;
   color: #666666;

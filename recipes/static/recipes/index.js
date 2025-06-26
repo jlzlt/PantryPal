@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
         removeBtn.textContent = "Remove";
         e.target.parentElement.appendChild(removeBtn);
 
-        // Add a new empty input group (without Remove button)
+        // Add a new empty input group
         const newField = document.createElement("div");
         newField.className = "input-group mb-2 animate-in position-relative";
         newField.innerHTML = `
@@ -304,7 +304,6 @@ document.addEventListener("DOMContentLoaded", function () {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("Server response:", data);
         recipeContainer.innerHTML = data.html;
 
         // Hide spinner, show updated results

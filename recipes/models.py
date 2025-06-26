@@ -1,6 +1,6 @@
+from datetime import timedelta
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from datetime import timedelta
 from django.utils.timezone import now
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -74,7 +74,6 @@ class SharedRecipe(models.Model):
         User, on_delete=models.CASCADE, related_name="shared_recipes"
     )
     user_comment = models.TextField(blank=True, null=True)
-    user_photo = models.ImageField(upload_to="shared_photos/", blank=True, null=True)
     shared_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
