@@ -202,16 +202,17 @@ def index(request):
 
             recipe_hash = generate_recipe_hash(recipe)
 
-            # Save to GeneratedRecipe model
-            GeneratedRecipe.objects.create(
-                user=request.user,
-                title=recipe["title"],
-                ingredients=recipe["ingredients"],
-                instructions=recipe["instructions"],
-                tags=selected_tag_keys,
-                image_url=image_url,
-                hash=recipe_hash,
-            )
+            if request.user.is_authenticated:
+                # Save to GeneratedRecipe model
+                GeneratedRecipe.objects.create(
+                    user=request.user,
+                    title=recipe["title"],
+                    ingredients=recipe["ingredients"],
+                    instructions=recipe["instructions"],
+                    tags=selected_tag_keys,
+                    image_url=image_url,
+                    hash=recipe_hash,
+                )
 
             recipe["hash"] = recipe_hash
             recipe["image_url"] = image_url
@@ -224,9 +225,12 @@ def index(request):
             recipes = None
         else:
             # Log activity for generated recipes
-            UserActivity.objects.create(
-                user=request.user, action="generated", details=f"{len(recipes)} recipes"
-            )
+            if request.user.is_authenticated:
+                UserActivity.objects.create(
+                    user=request.user,
+                    action="generated",
+                    details=f"{len(recipes)} recipes",
+                )
 
     # AJAX response for fetch()
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
@@ -591,7 +595,7 @@ def save_recipe(request):
         return JsonResponse(
             {"status": "error", "message": "No recipe hash provided."}, status=400
         )
-    
+
     recipe_hash.strip()
 
     # Try to find a GeneratedRecipe for this user and hash
