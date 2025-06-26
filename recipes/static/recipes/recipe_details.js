@@ -2,12 +2,6 @@ import { getCSRFToken } from "./utils.js";
 
 document.addEventListener("DOMContentLoaded", function () {
   const recipeContainer = document.querySelector(".recipe-detail-container");
-  let pendingRemoveForm = null;
-
-  // Modal elements
-  const modal = document.getElementById("remove-confirm-modal");
-  const confirmBtn = document.getElementById("confirm-remove-btn");
-  const cancelBtn = document.getElementById("cancel-remove-btn");
 
   // Save modal elements
   const saveModal = document.getElementById("save-confirm-modal");
@@ -15,18 +9,24 @@ document.addEventListener("DOMContentLoaded", function () {
   const cancelSaveBtn = document.getElementById("cancel-save-btn");
   let pendingSaveForm = null;
 
+  // Remove from Saved Modal elements
+  const modal = document.getElementById("remove-confirm-modal");
+  const confirmBtn = document.getElementById("confirm-remove-btn");
+  const cancelBtn = document.getElementById("cancel-remove-btn");
+  let pendingRemoveForm = null;
+
   // Share modal elements
-  const shareModal = document.getElementById("share-confirm-modal");
   const shareBtn = document.getElementById("share-btn");
+  const shareForm = document.getElementById("share-form");
+  const shareModal = document.getElementById("share-confirm-modal");
   const confirmShareBtn = document.getElementById("confirm-share-btn");
   const cancelShareBtn = document.getElementById("cancel-share-btn");
-  const shareForm = document.getElementById("share-form");
 
   // Remove share modal elements
+  const removeShareForm = document.getElementById("remove-share-form");
   const removeShareModal = document.getElementById(
     "remove-share-confirm-modal"
   );
-  const removeShareForm = document.getElementById("remove-share-form");
   const confirmRemoveShareBtn = document.getElementById(
     "confirm-remove-share-btn"
   );
@@ -34,20 +34,21 @@ document.addEventListener("DOMContentLoaded", function () {
     "cancel-remove-share-btn"
   );
 
-  // Handle recipe removal form submission
+  // Show modals for save, remove from saved and remove from shared
   if (recipeContainer) {
     recipeContainer.addEventListener("submit", (e) => {
       const form = e.target;
       if (form.classList.contains("remove-recipe-form")) {
         e.preventDefault();
-        // Show custom modal for remove
+        // Modal for remove from saved
         pendingRemoveForm = form;
         modal.classList.remove("d-none");
       } else if (form.classList.contains("save-recipe-form")) {
         e.preventDefault();
-        // Show custom modal for save
+        // Modal for save
         pendingSaveForm = form;
         saveModal.classList.remove("d-none");
+        // Modal for remove from shared
       } else if (form.id === "remove-share-form") {
         e.preventDefault();
         removeShareModal.classList.remove("d-none");
@@ -55,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Handle remove share modal
+  // Submit form to share recipe if user confirms in modal
   if (confirmRemoveShareBtn && removeShareForm && removeShareModal) {
     confirmRemoveShareBtn.addEventListener("click", () => {
       removeShareForm.submit();
@@ -63,13 +64,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // If user cancels remove modal
   if (cancelRemoveShareBtn && removeShareModal) {
     cancelRemoveShareBtn.addEventListener("click", () => {
       removeShareModal.classList.add("d-none");
     });
   }
 
-  // Handle modal confirmation
+  // Handle modal confirmation for removing from saved
   if (confirmBtn) {
     confirmBtn.addEventListener("click", async () => {
       if (!pendingRemoveForm) return;
@@ -82,6 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
       spinner.classList.remove("d-none");
       button.disabled = true;
 
+      // Remove from saved
       try {
         const response = await fetch("/remove_saved_recipe/", {
           method: "POST",
@@ -142,6 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // Handle share recipe functionality (submits form, refreshes page)
   if (shareBtn && shareModal) {
     shareBtn.addEventListener("click", () => {
       shareModal.classList.remove("d-none");
@@ -249,12 +253,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (ratingContainer) {
     const sharedId = ratingContainer.dataset.sharedId;
-    let stars = Array.from(ratingContainer.querySelectorAll(".star-input")); // left-to-right
+    let stars = Array.from(ratingContainer.querySelectorAll(".star-input"));
+    let selectedValue = stars.filter((s) =>
+      s.classList.contains("selected")
+    ).length;
 
-    function updateSelectedStars(value) {
+    function updateSelectedStars(value, store = false) {
       stars.forEach((star, idx) => {
         star.classList.toggle("selected", idx < value);
       });
+      if (store) {
+        selectedValue = value;
+      }
     }
 
     stars.forEach((star, idx) => {
@@ -262,13 +272,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Hover effect
       star.addEventListener("mouseover", () => {
-        stars.forEach((s, i) => {
-          s.classList.toggle("hover", i <= idx);
-        });
+        updateSelectedStars(value);
       });
 
       star.addEventListener("mouseleave", () => {
-        stars.forEach((s) => s.classList.remove("hover"));
+        updateSelectedStars(selectedValue);
       });
 
       // Click to rate
@@ -288,7 +296,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
           if (data.success) {
             // Update selected state, keep interactive stars
-            updateSelectedStars(value);
+            updateSelectedStars(value, true);
             // Hide feedback text entirely
             if (feedback) feedback.classList.add("hidden");
 
