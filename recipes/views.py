@@ -585,12 +585,14 @@ def generate_recipe_hash(recipe):
 @login_required
 @require_POST
 def save_recipe(request):
-    recipe_hash = request.POST.get("recipe_hash").strip()
+    recipe_hash = request.POST.get("recipe_hash")
 
     if not recipe_hash:
         return JsonResponse(
             {"status": "error", "message": "No recipe hash provided."}, status=400
         )
+    
+    recipe_hash.strip()
 
     # Try to find a GeneratedRecipe for this user and hash
     gen_recipe = GeneratedRecipe.objects.filter(
