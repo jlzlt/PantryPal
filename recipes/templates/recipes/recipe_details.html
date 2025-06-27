@@ -168,6 +168,47 @@
   </div>
 </div>
 
+<!-- Comment Section -->
+<div class="comment-section">
+  <div class="comment-card card shadow-sm mb-4" style="max-width: 800px; margin: 0 auto;">
+    <div class="card-body">
+      <h3 class="card-title mb-3" style="font-size: 1.5em; color: #23423b;">
+        Comments{% if comments and comments|length > 0 %} ({{ comments|length }}){% endif %}
+      </h3>
+      {% if user.is_authenticated and shared_recipe %}
+        <form method="post" action="" class="mb-4">
+          {% csrf_token %}
+          {{ comment_form.text }}
+          <div id="comment-char-count" class="text-end text-muted small mt-1" style="letter-spacing:0.5px;">0 / 1000</div>
+          <button type="submit" class="btn btn-success mt-2">Post Comment</button>
+        </form>
+      {% elif not user.is_authenticated %}
+        <div class="alert alert-info">Please <a href="{% url 'login' %}">log in</a> to comment.</div>
+      {% endif %}
+      <div class="comments-list">
+        {% if comments %}
+          {% for comment in comments %}
+            <div class="comment mb-3 p-3 rounded{% if comment.author == shared_recipe.author %} author-comment{% endif %}" style="background: #f9f9f9; border: 1px solid #eee;">
+              <div class="d-flex align-items-center mb-1">
+                <span class="fw-bold me-2">
+                  {{ comment.author.username }}
+                  {% if comment.author == shared_recipe.author %}
+                    <span class="ms-1">(author)</span>
+                  {% endif %}
+                </span>
+                <span class="text-muted small">{{ comment.created_at|date:"M d, Y H:i" }}</span>
+              </div>
+              <div class="comment-text">{{ comment.text|linebreaksbr }}</div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-muted">No comments yet. Be the first to comment!</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Custom Confirmation Modal -->
 <div id="remove-confirm-modal" class="custom-modal-backdrop d-none">
   <div class="custom-modal">

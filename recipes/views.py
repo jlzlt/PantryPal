@@ -45,6 +45,7 @@ from .constants import (
     TAGS,
     DEFAULT_IMAGE_URL,
 )
+from .forms import RecipeCommentForm
 
 
 def register(request):
@@ -719,6 +720,22 @@ def recipe_details(request, recipe_id):
         if user_rating_obj:
             user_rating = user_rating_obj.rating
 
+    # --- Comments logic ---
+    comment_form = None
+    comments = []
+    if shared_recipe:
+        if request.method == "POST":
+            comment_form = RecipeCommentForm(request.POST)
+            if comment_form.is_valid():
+                comment = comment_form.save(commit=False)
+                comment.author = request.user
+                comment.recipe = shared_recipe
+                comment.save()
+                return redirect("recipe_details", recipe_id=recipe.id)
+        else:
+            comment_form = RecipeCommentForm()
+        comments = shared_recipe.comments.select_related('author').order_by('-created_at')
+
     return render(
         request,
         "recipes/recipe_details.html",
@@ -732,6 +749,8 @@ def recipe_details(request, recipe_id):
             "user_rating": user_rating,
             "is_shared_by_user": is_shared_by_user,
             "is_shared_by_anyone": is_shared_by_anyone,
+            "comment_form": comment_form,
+            "comments": comments,
         },
     )
 

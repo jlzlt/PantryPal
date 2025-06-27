@@ -378,4 +378,23 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   }
+
+  // --- Live character counter for comment textarea ---
+  const commentTextarea = document.querySelector('textarea[name="text"]');
+  const charCount = document.getElementById('comment-char-count');
+  if (commentTextarea && charCount) {
+    const maxLen = 1000;
+    function updateCharCount() {
+      const len = commentTextarea.value.length;
+      charCount.textContent = `${len} / ${maxLen}`;
+      if (len >= maxLen) {
+        charCount.classList.add('text-danger');
+      } else {
+        charCount.classList.remove('text-danger');
+      }
+    }
+    commentTextarea.addEventListener('input', updateCharCount);
+    // Initialize on page load
+    updateCharCount();
+  }
 });
