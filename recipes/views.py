@@ -618,22 +618,29 @@ def save_recipe(request):
             image_file = None
             if gen_recipe.image_url:
                 try:
+                    logging.info(f"Attempting to download image from {gen_recipe.image_url}")
                     response = requests.get(gen_recipe.image_url, timeout=5)
                     response.raise_for_status()
                     image_file = ContentFile(
                         response.content, name=f"{gen_recipe.hash}.jpg"
                     )
-                except requests.RequestException:
-                    print("Could not download image.")
+                    logging.info("Image downloaded successfully, attempting to save to Recipe model.")
+                except requests.RequestException as e:
+                    logging.error(f"Could not download image: {e}")
 
-            recipe = Recipe.objects.create(
-                title=gen_recipe.title,
-                ingredients=gen_recipe.ingredients,
-                instructions=gen_recipe.instructions,
-                tags=gen_recipe.tags,
-                image=image_file,
-                hash=recipe_hash,
-            )
+            try:
+                recipe = Recipe.objects.create(
+                    title=gen_recipe.title,
+                    ingredients=gen_recipe.ingredients,
+                    instructions=gen_recipe.instructions,
+                    tags=gen_recipe.tags,
+                    image=image_file,
+                    hash=recipe_hash,
+                )
+                logging.info(f"Recipe saved successfully with image: {recipe.image.url if recipe.image else 'No image'}")
+            except Exception as e:
+                logging.error(f"Error saving Recipe with image to S3: {e}", exc_info=True)
+                return JsonResponse({"status": "error", "message": str(e)}, status=500)
     else:
         # Try to find an existing Recipe with this hash
         recipe = Recipe.objects.filter(hash=recipe_hash).first()

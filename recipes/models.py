@@ -19,7 +19,7 @@ class GeneratedRecipe(models.Model):
     ingredients = models.JSONField(blank=False, null=False)
     instructions = models.JSONField(blank=False, null=False)
     tags = models.JSONField(blank=True, null=True)
-    image_url = models.URLField(blank=True, null=True)
+    image_url = models.URLField(max_length=500, blank=True, null=True)
     hash = models.CharField(max_length=64, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
