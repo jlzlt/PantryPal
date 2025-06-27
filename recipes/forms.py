@@ -8,17 +8,19 @@ class IngredientForm(forms.Form):
 class RecipeCommentForm(forms.ModelForm):
     class Meta:
         model = RecipeComment
-        fields = ['text']
+        fields = ['text', 'image']
         widgets = {
             'text': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Add a comment...',
                 'maxlength': 1000,
-            })
+            }),
+            'image': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         }
         labels = {
-            'text': ''
+            'text': '',
+            'image': 'Attach photo (optional)',
         }
     
     def clean_text(self):

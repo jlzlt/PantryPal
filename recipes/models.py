@@ -98,6 +98,7 @@ class RecipeComment(models.Model):
         SharedRecipe, on_delete=models.CASCADE, related_name="comments"
     )
     text = models.TextField(blank=False, null=False)
+    image = models.ImageField(upload_to="comment_photos/", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -176,10 +176,11 @@
         Comments{% if comments and comments|length > 0 %} ({{ comments|length }}){% endif %}
       </h3>
       {% if user.is_authenticated and shared_recipe %}
-        <form method="post" action="" class="mb-4">
+        <form method="post" action="" class="mb-4" enctype="multipart/form-data">
           {% csrf_token %}
           {{ comment_form.text }}
           <div id="comment-char-count" class="text-end text-muted small mt-1" style="letter-spacing:0.5px;">0 / 1000</div>
+          {{ comment_form.image }}
           <button type="submit" class="btn btn-success mt-2">Post Comment</button>
         </form>
       {% elif not user.is_authenticated %}
@@ -199,6 +200,11 @@
                 <span class="text-muted small">{{ comment.created_at|date:"M d, Y H:i" }}</span>
               </div>
               <div class="comment-text">{{ comment.text|linebreaksbr }}</div>
+              {% if comment.image %}
+                <div class="comment-image mt-2">
+                  <img src="{{ comment.image.url }}" alt="Comment photo" class="comment-preview-img" data-img-url="{{ comment.image.url }}" style="max-width: 220px; border-radius: 8px; box-shadow: 0 1px 6px rgba(35,66,59,0.08); cursor: pointer;">
+                </div>
+              {% endif %}
             </div>
           {% endfor %}
         {% else %}
@@ -263,6 +269,16 @@
         <button id="cancel-remove-share-btn" class="btn btn-secondary">Cancel</button>
         <button id="confirm-remove-share-btn" class="btn btn-danger">Remove</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div id="img-preview-modal" class="custom-modal-backdrop d-none">
+  <div class="custom-modal" style="max-width: 90vw; max-height: 90vh; padding: 0; background: none; box-shadow: none;">
+    <div class="custom-modal-content" style="background: #fff; border-radius: 12px; padding: 1rem; position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center;">
+      <button id="close-img-preview" class="btn btn-secondary" style="position: absolute; top: 10px; right: 10px; z-index: 2;">&times;</button>
+      <img id="img-preview-large" src="" alt="Preview" style="max-width: 80vw; max-height: 80vh; border-radius: 10px; box-shadow: 0 2px 16px rgba(35,66,59,0.18);">
     </div>
   </div>
 </div>

@@ -468,3 +468,35 @@ h2 {
   background: #e0ece6 !important;
   border-color: #b2d8c7 !important;
 }
+
+.comment-image {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: flex-start;
+}
+
+.comment-image img {
+  max-width: 220px;
+  max-height: 180px;
+  border-radius: 8px;
+  box-shadow: 0 1px 6px rgba(35,66,59,0.10);
+  object-fit: cover;
+  border: 1.5px solid #e0ece6;
+}
+
+.comment-section .form-control[type="file"] {
+  margin-top: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.97em;
+  background: #f8fafb;
+  border-radius: 6px;
+  border: 1px solid #d1e7dd;
+  color: #23423b;
+  box-shadow: none;
+}
+
+.comment-section .form-control[type="file"]:focus {
+  border-color: #23423b;
+  outline: none;
+}

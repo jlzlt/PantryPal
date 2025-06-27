@@ -397,4 +397,29 @@ document.addEventListener("DOMContentLoaded", function () {
     // Initialize on page load
     updateCharCount();
   }
+
+  // --- Image preview modal for comment images ---
+  const previewImgs = document.querySelectorAll('.comment-preview-img');
+  const imgPreviewModal = document.getElementById('img-preview-modal');
+  const imgPreviewLarge = document.getElementById('img-preview-large');
+  const closeImgPreview = document.getElementById('close-img-preview');
+
+  if (previewImgs.length && imgPreviewModal && imgPreviewLarge && closeImgPreview) {
+    previewImgs.forEach(img => {
+      img.addEventListener('click', function () {
+        imgPreviewLarge.src = this.dataset.imgUrl || this.src;
+        imgPreviewModal.classList.remove('d-none');
+      });
+    });
+    closeImgPreview.addEventListener('click', function () {
+      imgPreviewModal.classList.add('d-none');
+      imgPreviewLarge.src = '';
+    });
+    imgPreviewModal.addEventListener('click', function (e) {
+      if (e.target === imgPreviewModal) {
+        imgPreviewModal.classList.add('d-none');
+        imgPreviewLarge.src = '';
+      }
+    });
+  }
 });
