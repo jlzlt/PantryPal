@@ -1,0 +1,38 @@
+/* Styles for about.html moved from inline */
+.about-card {
+  max-width: 600px;
+  border-radius: 1.5rem;
+}
+
+.about-card img {
+  height: 48px;
+}
+
+.about-card h2 {
+  font-weight: 700;
+}
+
+.about-card h5 {
+  font-weight: 600;
+}
+
+.step-number {
+  min-width: 2.7em;
+  min-height: 2.7em;
+  font-size: 1.5em;
+  font-weight: 700;
+  background: linear-gradient(135deg, #00b09b 60%, #96c93d 100%);
+  color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.1);
+}
+
+.save-highlight {
+  color: #198754;
+  font-weight: 600;
+}
+
+.share-highlight {
+  color: #8e44ad;
+  font-weight: 600;
+} 
