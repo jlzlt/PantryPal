@@ -203,8 +203,8 @@ def index(request):
 
             recipe_hash = generate_recipe_hash(recipe)
 
-            if request.user.is_authenticated:
-                # Save to GeneratedRecipe model
+        if request.user.is_authenticated:
+            try:
                 GeneratedRecipe.objects.create(
                     user=request.user,
                     title=recipe["title"],
@@ -214,6 +214,8 @@ def index(request):
                     image_url=image_url,
                     hash=recipe_hash,
                 )
+            except Exception as e:
+                logging.error(f"Error saving GeneratedRecipe: {e}", exc_info=True)
 
             recipe["hash"] = recipe_hash
             recipe["image_url"] = image_url
