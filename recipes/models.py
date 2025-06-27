@@ -123,9 +123,15 @@ class RecipeRating(models.Model):
 
 class UserActivity(models.Model):
     ACTION_CHOICES = [
-        ('generated', 'Generated Recipes'),
+        ('generated', 'Generated'),
         ('saved', 'Saved Recipe'),
         ('shared', 'Shared Recipe'),
+        ('unshared', 'Unshared Recipe'),
+        ('unsaved', 'Unsaved Recipe'),
+        ('commented', 'Commented'),
+        ('rated', 'Rated Recipe'),
+        ('email_changed', 'Changed Email'),
+        ('password_changed', 'Changed Password'),
     ]
     user = models.ForeignKey('recipes.User', on_delete=models.CASCADE, related_name='activities')
     timestamp = models.DateTimeField(auto_now_add=True)

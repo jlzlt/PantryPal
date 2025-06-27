@@ -144,15 +144,23 @@
                   >
                 </div>
                 <div>
-                  {% if activity.action == 'generated' %} Generated
-                  <span class="fw-semibold">{{ activity.details }}</span> 
-                  {% elif activity.action == 'saved' %} Saved
-                  <span class="fw-semibold text-success"
-                    >{{ activity.details }}</span
-                  >
-                  {% elif activity.action == 'shared' %} Shared
-                  <span class="fw-semibold shared-highlight">{{ activity.details }}</span>
-                  {% else %} {{ activity.action }} {{ activity.details }} 
+                  {% if activity.action == 'generated' %}
+                    <strong>{{ activity.get_action_display }}</strong>
+                    <span class="fw-semibold">{{ activity.details }}</span>
+                  {% elif activity.action == 'saved' %}
+                    <strong>{{ activity.get_action_display }}</strong>
+                    <span class="fw-semibold text-success">{{ activity.details }}</span>
+                  {% elif activity.action == 'shared' %}
+                    <strong>{{ activity.get_action_display }}</strong>
+                    <span class="fw-semibold shared-highlight">{{ activity.details }}</span>
+                  {% elif activity.action == 'unsaved' %}
+                    <strong>{{ activity.get_action_display }}</strong>
+                    <span class="fw-semibold text-success">{{ activity.details }}</span>
+                  {% elif activity.action == 'unshared' %}
+                    <strong>{{ activity.get_action_display }}</strong>
+                    <span class="fw-semibold shared-highlight">{{ activity.details }}</span>
+                  {% else %}
+                    <strong>{{ activity.details }}</strong>
                   {% endif %}
                 </div>
               </div>

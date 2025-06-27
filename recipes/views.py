@@ -655,8 +655,8 @@ def save_recipe(request):
     return JsonResponse({"status": "saved", "message": "Recipe saved successfully."})
 
 
-@login_required
 @require_POST
+@login_required
 def remove_saved_recipe(request):
     recipe_hash = request.POST.get("recipe_hash")
     if not recipe_hash:
@@ -668,7 +668,12 @@ def remove_saved_recipe(request):
         saved_recipe = SavedRecipe.objects.get(
             user=request.user, recipe__hash=recipe_hash
         )
+        recipe_title = saved_recipe.recipe.title
         saved_recipe.delete()
+        # Log activity for unsaving recipe
+        UserActivity.objects.create(
+            user=request.user, action="unsaved", details=recipe_title
+        )
         return JsonResponse(
             {"status": "removed", "message": "Recipe removed from saved"}
         )
@@ -731,6 +736,10 @@ def recipe_details(request, recipe_id):
                 comment.author = request.user
                 comment.recipe = shared_recipe
                 comment.save()
+                # Log activity for commenting
+                UserActivity.objects.create(
+                    user=request.user, action="commented", details=f"{recipe.title}: {comment.text[:50]}"
+                )
                 return redirect("recipe_details", recipe_id=recipe.id)
         else:
             comment_form = RecipeCommentForm()
@@ -807,6 +816,11 @@ def rate_recipe(request, shared_recipe_id):
                     rating_obj.rating = rating_value
                     rating_obj.save()
 
+                # Log activity for rating
+                UserActivity.objects.create(
+                    user=request.user, action="rated", details=f"{shared_recipe.recipe.title}: {rating_value} stars"
+                )
+
                 # For AJAX requests, return JSON
                 if request.headers.get("x-requested-with") == "XMLHttpRequest":
                     avg = shared_recipe.ratings.aggregate(
@@ -851,6 +865,10 @@ def remove_shared_recipe(request):
         return redirect("recipe_details", recipe_id=recipe.id)
 
     shared_recipe.delete()
+    # Log activity for unsharing recipe
+    UserActivity.objects.create(
+        user=request.user, action="unshared", details=recipe.title
+    )
     messages.success(request, "Recipe removed from shared recipes!")
     return redirect("recipe_details", recipe_id=recipe.id)
 
@@ -884,12 +902,20 @@ def profile(request):
             if email_form.is_valid():
                 email_form.save()
                 email_success = True
+                # Log activity for email change
+                UserActivity.objects.create(
+                    user=request.user, action="email_changed", details=f"Changed email to {user.email}"
+                )
         elif "password_submit" in request.POST:
             password_form = DevPasswordChangeForm(user, request.POST)
             if password_form.is_valid():
                 user = password_form.save()
                 update_session_auth_hash(request, user)  # Keep user logged in
                 password_success = True
+                # Log activity for password change
+                UserActivity.objects.create(
+                    user=request.user, action="password_changed", details="Password changed"
+                )
 
     return render(
         request,
