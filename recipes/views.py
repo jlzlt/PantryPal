@@ -235,13 +235,17 @@ def index(request):
 
     # AJAX response for fetch()
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        if recipes:
-            html = render_to_string(
-                "recipes/_recipe_results.html", {"recipes": recipes}, request=request
-            )
-        else:
-            html = error_html
-        return JsonResponse({"html": html})
+        try:
+            if recipes:
+                html = render_to_string(
+                    "recipes/_recipe_results.html", {"recipes": recipes}, request=request
+                )
+            else:
+                html = error_html
+            return JsonResponse({"html": html})
+        except Exception as e:
+            logging.error(f"Error rendering AJAX response: {e}", exc_info=True)
+            return JsonResponse({"html": error_html, "error": str(e)}, status=500)
 
     return render(
         request,
