@@ -422,4 +422,24 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
+
+  // --- Frontend validation for comment image file size ---
+  const imageInput = document.querySelector('.comment-section input[type="file"]');
+  if (imageInput) {
+    let warning = document.createElement('div');
+    warning.className = 'text-danger small mt-1';
+    warning.style.display = 'none';
+    imageInput.parentNode.insertBefore(warning, imageInput.nextSibling);
+    imageInput.addEventListener('change', function () {
+      warning.style.display = 'none';
+      if (imageInput.files && imageInput.files[0]) {
+        const file = imageInput.files[0];
+        if (file.size > 3 * 1024 * 1024) {
+          warning.textContent = 'Image file size cannot exceed 3MB.';
+          warning.style.display = 'block';
+          imageInput.value = '';
+        }
+      }
+    });
+  }
 });

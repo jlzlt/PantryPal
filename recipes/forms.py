@@ -28,3 +28,11 @@ class RecipeCommentForm(forms.ModelForm):
         if len(text) > 1000:
             raise forms.ValidationError('Comments cannot exceed 1000 characters.')
         return text
+
+    def clean_image(self):
+        image = self.cleaned_data.get('image')
+        if image:
+            max_size = 3 * 1024 * 1024  # 3MB
+            if image.size > max_size:
+                raise forms.ValidationError('Image file size cannot exceed 3MB.')
+        return image
