@@ -57,10 +57,48 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Submit form to share recipe if user confirms in modal
+  if (confirmShareBtn && shareForm && shareModal) {
+    confirmShareBtn.addEventListener("click", () => {
+      shareModal.classList.add("d-none");
+      const shareBtnOnPage = document.getElementById("share-btn");
+      if (shareBtnOnPage) {
+        shareBtnOnPage.disabled = true;
+        let spinner = shareBtnOnPage.querySelector(".spinner-border");
+        let buttonText = shareBtnOnPage.querySelector(".button-text");
+        if (!spinner) {
+          spinner = document.createElement("span");
+          spinner.className = "spinner-border spinner-border-sm ms-2";
+          spinner.setAttribute("role", "status");
+          spinner.setAttribute("aria-hidden", "true");
+          shareBtnOnPage.appendChild(spinner);
+        }
+        if (buttonText) buttonText.classList.remove("d-none");
+        spinner.classList.remove("d-none");
+      }
+      shareForm.submit();
+    });
+  }
+
+  // Submit form to remove shared recipe if user confirms in modal
   if (confirmRemoveShareBtn && removeShareForm && removeShareModal) {
     confirmRemoveShareBtn.addEventListener("click", () => {
-      removeShareForm.submit();
       removeShareModal.classList.add("d-none");
+      const removeShareBtn = document.getElementById("remove-share-btn");
+      if (removeShareBtn) {
+        removeShareBtn.disabled = true;
+        let spinner = removeShareBtn.querySelector(".spinner-border");
+        let buttonText = removeShareBtn.querySelector(".button-text");
+        if (!spinner) {
+          spinner = document.createElement("span");
+          spinner.className = "spinner-border spinner-border-sm ms-2";
+          spinner.setAttribute("role", "status");
+          spinner.setAttribute("aria-hidden", "true");
+          removeShareBtn.appendChild(spinner);
+        }
+        if (buttonText) buttonText.classList.remove("d-none");
+        spinner.classList.remove("d-none");
+      }
+      removeShareForm.submit();
     });
   }
 
@@ -75,15 +113,14 @@ document.addEventListener("DOMContentLoaded", function () {
   if (confirmBtn) {
     confirmBtn.addEventListener("click", async () => {
       if (!pendingRemoveForm) return;
+      modal.classList.add("d-none");
       const form = pendingRemoveForm;
       const button = form.querySelector("button[type='submit']");
       const buttonText = button.querySelector(".button-text");
       const spinner = button.querySelector(".spinner-border");
-      // Show loading state
-      buttonText.classList.add("d-none");
+      buttonText.classList.remove("d-none");
       spinner.classList.remove("d-none");
       button.disabled = true;
-
       // Remove from saved
       try {
         const response = await fetch("/remove_saved_recipe/", {
@@ -94,7 +131,6 @@ document.addEventListener("DOMContentLoaded", function () {
           },
           body: new URLSearchParams(new FormData(form)),
         });
-
         const data = await response.json();
         if (data.status === "removed") {
           // Swap Remove for Save button
@@ -107,9 +143,7 @@ document.addEventListener("DOMContentLoaded", function () {
           saveForm.className = "save-recipe-form";
           saveForm.innerHTML = `
             <input type="hidden" name="csrfmiddlewaretoken" value="${getCSRFToken()}">
-            <input type="hidden" name="recipe_hash" value="${
-              form.querySelector("input[name=recipe_hash]").value
-            }">
+            <input type="hidden" name="recipe_hash" value="${form.querySelector("input[name=recipe_hash]").value}">
             <button type="submit" class="btn add-btn" data-saved="false">
               <span class="button-text">Save</span>
               <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
@@ -126,13 +160,8 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("Failed to remove recipe. Please try again.");
         console.error("Error:", error);
       } finally {
-        modal.classList.add("d-none");
         pendingRemoveForm = null;
-        if (buttonText && spinner && button) {
-          buttonText.classList.remove("d-none");
-          spinner.classList.add("d-none");
-          button.disabled = false;
-        }
+        // No need to revert spinner/button state since form is removed or replaced
       }
     });
   }
@@ -156,26 +185,19 @@ document.addEventListener("DOMContentLoaded", function () {
       shareModal.classList.add("d-none");
     });
   }
-  if (confirmShareBtn && shareForm && shareModal) {
-    confirmShareBtn.addEventListener("click", () => {
-      shareForm.submit();
-      shareModal.classList.add("d-none");
-    });
-  }
 
   // Handle save modal confirmation
   if (confirmSaveBtn) {
     confirmSaveBtn.addEventListener("click", async () => {
       if (!pendingSaveForm) return;
+      saveModal.classList.add("d-none");
       const form = pendingSaveForm;
       const button = form.querySelector("button[type='submit']");
       const buttonText = button.querySelector(".button-text");
       const spinner = button.querySelector(".spinner-border");
-      // Show loading state
-      buttonText.classList.add("d-none");
+      buttonText.classList.remove("d-none");
       spinner.classList.remove("d-none");
       button.disabled = true;
-
       try {
         const response = await fetch("/save_recipe/", {
           method: "POST",
@@ -185,7 +207,6 @@ document.addEventListener("DOMContentLoaded", function () {
           },
           body: new URLSearchParams(new FormData(form)),
         });
-
         const data = await response.json();
         if (data.status === "saved") {
           // Swap Save for Remove button
@@ -198,29 +219,14 @@ document.addEventListener("DOMContentLoaded", function () {
           removeForm.className = "remove-recipe-form";
           removeForm.innerHTML = `
             <input type="hidden" name="csrfmiddlewaretoken" value="${getCSRFToken()}">
-            <input type="hidden" name="recipe_hash" value="${
-              form.querySelector("input[name=recipe_hash]").value
-            }">
+            <input type="hidden" name="recipe_hash" value="${form.querySelector("input[name=recipe_hash]").value}">
             <button type="submit" class="btn remove-btn" data-saved="true">
               <span class="button-text">Remove from Saved</span>
               <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
             </button>
           `;
           buttonGroup.appendChild(removeForm);
-          // Add saved-timestamp footer
-          const timestamp = document.createElement("div");
-          timestamp.className = "saved-timestamp";
-          timestamp.textContent = `Saved ${new Date().toLocaleDateString(
-            "en-US",
-            {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            }
-          )}`;
-          document
-            .querySelector(".button-group")
-            .insertAdjacentElement("afterend", timestamp);
+          // Add saved-timestamp footer if needed (optional)
         } else {
           alert(data.message || "Failed to save recipe.");
         }
@@ -228,13 +234,8 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("Failed to save recipe. Please try again.");
         console.error("Error:", error);
       } finally {
-        saveModal.classList.add("d-none");
         pendingSaveForm = null;
-        if (buttonText && spinner && button) {
-          buttonText.classList.remove("d-none");
-          spinner.classList.add("d-none");
-          button.disabled = false;
-        }
+        // No need to revert spinner/button state since form is removed or replaced
       }
     });
   }

@@ -275,9 +275,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const submitBtn = form.querySelector("button[type='submit']");
     if (submitBtn) {
       submitBtn.disabled = true;
-      console.log("Button disabled");
-    } else {
-      console.log("Button not found");
     }
 
     updateHiddenInput();
@@ -319,7 +316,6 @@ document.addEventListener("DOMContentLoaded", function () {
         // Re-enable the button after recipes are shown
         if (submitBtn) {
           submitBtn.disabled = false;
-          console.log("Button re-enabled after success");
         }
       })
       .catch((err) => {
@@ -331,7 +327,6 @@ document.addEventListener("DOMContentLoaded", function () {
         // Re-enable the button on error
         if (submitBtn) {
           submitBtn.disabled = false;
-          console.log("Button re-enabled after error");
         }
       });
   });
@@ -352,7 +347,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       saveButton.disabled = true;
       spinner.classList.remove("d-none");
-      buttonText.classList.add("d-none");
+      buttonText.classList.remove("d-none");
 
       if (isSaved) {
         // Remove saved recipe

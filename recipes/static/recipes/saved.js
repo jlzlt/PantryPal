@@ -117,13 +117,15 @@ document.addEventListener("DOMContentLoaded", function () {
     confirmBtn.addEventListener("click", async () => {
       if (!pendingRemoveForm) return;
 
+      // Hide modal immediately
+      modal.classList.add("d-none");
+
       const form = pendingRemoveForm;
       const button = form.querySelector("button[type='submit']");
       const buttonText = button.querySelector(".button-text");
       const spinner = button.querySelector(".spinner-border");
 
       // Show loading state
-      buttonText.classList.add("d-none");
       spinner.classList.remove("d-none");
       button.disabled = true;
 
@@ -147,13 +149,17 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
           console.error("Error removing recipe:", data.message);
           alert(`Error: ${data.message}`);
+          // Revert button state
+          spinner.classList.add("d-none");
+          button.disabled = false;
         }
       } catch (error) {
         console.error("Error:", error);
         alert("Failed to remove recipe. Please try again.");
+        // Revert button state
+        spinner.classList.add("d-none");
+        button.disabled = false;
       } finally {
-        // Hide modal
-        modal.classList.add("d-none");
         pendingRemoveForm = null;
       }
     });

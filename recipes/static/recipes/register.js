@@ -45,6 +45,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (hasError) {
       e.preventDefault();
+    } else {
+      // Disable button and show spinner
+      const submitBtn = registerForm.querySelector("button[type='submit']");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        const spinner = submitBtn.querySelector(".spinner-border");
+        if (spinner) spinner.classList.remove("d-none");
+      }
     }
   });
 

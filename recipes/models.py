@@ -3,9 +3,16 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.timezone import now
 from django.core.validators import MinValueValidator, MaxValueValidator
-from storages.backends.s3boto3 import S3Boto3Storage
+import os
 
 User = AbstractUser
+
+if os.environ.get("USE_S3", "False") == "True":
+    from storages.backends.s3boto3 import S3Boto3Storage
+    image_storage = S3Boto3Storage()
+else:
+    from django.core.files.storage import FileSystemStorage
+    image_storage = FileSystemStorage()
 
 
 class User(AbstractUser):
@@ -39,7 +46,7 @@ class Recipe(models.Model):
     ingredients = models.JSONField(blank=False, null=False)
     instructions = models.JSONField(blank=False, null=False)
     tags = models.JSONField(blank=True, null=True)
-    image = models.ImageField(storage=S3Boto3Storage(), upload_to="recipes/", blank=True, null=True)
+    image = models.ImageField(storage=image_storage, upload_to="recipes/", blank=True, null=True)
     hash = models.CharField(max_length=64, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -99,7 +106,7 @@ class RecipeComment(models.Model):
         SharedRecipe, on_delete=models.CASCADE, related_name="comments"
     )
     text = models.TextField(blank=False, null=False)
-    image = models.ImageField(upload_to="comment_photos/", blank=True, null=True)
+    image = models.ImageField(storage=image_storage, upload_to="comment_photos/", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

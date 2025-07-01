@@ -146,7 +146,7 @@ def logout_view(request):
 
 def index(request):
     recipes = None
-    error_html = '<div class="alert alert-danger">Failed to load recipes. Please try again.</div>'    
+    error_html = '<div class="alert alert-danger">Failed to load recipes. Please try again.</div>'
 
     if request.method == "POST":
         ingredients = request.POST.get("ingredients", "").strip()
@@ -601,20 +601,6 @@ def generate_recipe_hash(recipe):
 @login_required
 @require_POST
 def save_recipe(request):
-    from django.conf import settings
-
-    logging.info(
-        f"DEFAULT_FILE_STORAGE: {getattr(settings, 'DEFAULT_FILE_STORAGE', None)}"
-    )
-    logging.info(f"MEDIA_URL: {getattr(settings, 'MEDIA_URL', None)}")
-    logging.info(
-        f"AWS_STORAGE_BUCKET_NAME: {getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)}"
-    )
-    logging.info(f"AWS_S3_REGION_NAME: {getattr(settings, 'AWS_S3_REGION_NAME', None)}")
-    logging.info(f"AWS_ACCESS_KEY_ID: {getattr(settings, 'AWS_ACCESS_KEY_ID', None)}")
-    logging.info(
-        f"AWS_SECRET_ACCESS_KEY: {getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)}"
-    )
     recipe_hash = request.POST.get("recipe_hash")
 
     if not recipe_hash:
@@ -660,14 +646,13 @@ def save_recipe(request):
                     tags=gen_recipe.tags,
                     hash=recipe_hash,
                 )
-                # Now explicitly save the image to trigger S3 upload
                 if image_file:
-                    logging.info(f"image_file type: {type(image_file)}, name: {getattr(image_file, 'name', None)}")
                     try:
                         recipe.image.save(f"{gen_recipe.hash}.jpg", image_file)
                         recipe.save()
                     except Exception as e:
                         import traceback
+
                         logging.error(f"Error during image save: {e}")
                         logging.error(traceback.format_exc())
                 logging.info(

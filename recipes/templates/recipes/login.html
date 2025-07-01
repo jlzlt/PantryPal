@@ -39,7 +39,10 @@
         <div class="invalid-feedback d-block mb-2">{{ errors.password }}</div>
         {% endif %}
       </div>
-      <button class="btn btn-success w-100 mb-2" type="submit">Login</button>
+      <button class="btn btn-success w-100 mb-2" type="submit">
+        Login
+        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+      </button>
     </form>
     <div class="text-center mt-2">
       <span class="text-muted">Don't have an account?</span>
