@@ -148,6 +148,10 @@ def index(request):
     recipes = None
     error_html = '<div class="alert alert-danger">Failed to load recipes. Please try again.</div>'
 
+    from boto import boto
+
+    boto()
+
     if request.method == "POST":
         ingredients = request.POST.get("ingredients", "").strip()
         print(f"Ingredients: {ingredients}")
@@ -602,12 +606,19 @@ def generate_recipe_hash(recipe):
 @require_POST
 def save_recipe(request):
     from django.conf import settings
-    logging.info(f"DEFAULT_FILE_STORAGE: {getattr(settings, 'DEFAULT_FILE_STORAGE', None)}")
+
+    logging.info(
+        f"DEFAULT_FILE_STORAGE: {getattr(settings, 'DEFAULT_FILE_STORAGE', None)}"
+    )
     logging.info(f"MEDIA_URL: {getattr(settings, 'MEDIA_URL', None)}")
-    logging.info(f"AWS_STORAGE_BUCKET_NAME: {getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)}")
+    logging.info(
+        f"AWS_STORAGE_BUCKET_NAME: {getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)}"
+    )
     logging.info(f"AWS_S3_REGION_NAME: {getattr(settings, 'AWS_S3_REGION_NAME', None)}")
     logging.info(f"AWS_ACCESS_KEY_ID: {getattr(settings, 'AWS_ACCESS_KEY_ID', None)}")
-    logging.info(f"AWS_SECRET_ACCESS_KEY: {getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)}")
+    logging.info(
+        f"AWS_SECRET_ACCESS_KEY: {getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)}"
+    )
     recipe_hash = request.POST.get("recipe_hash")
 
     if not recipe_hash:
