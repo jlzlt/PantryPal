@@ -271,6 +271,15 @@ document.addEventListener("DOMContentLoaded", function () {
   form.addEventListener("submit", function (e) {
     e.preventDefault();
 
+    // Disable the Generate Recipes button to prevent rapid clicks
+    const submitBtn = form.querySelector("button[type='submit']");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      console.log("Button disabled");
+    } else {
+      console.log("Button not found");
+    }
+
     updateHiddenInput();
 
     const inputs = ingredientList.querySelectorAll(".ingredient-input");
@@ -305,10 +314,13 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((res) => res.json())
       .then((data) => {
         recipeContainer.innerHTML = data.html;
-
-        // Hide spinner, show updated results
         spinner.style.display = "none";
         recipeContainer.style.display = "block";
+        // Re-enable the button after recipes are shown
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          console.log("Button re-enabled after success");
+        }
       })
       .catch((err) => {
         console.error("Error submitting form:", err);
@@ -316,6 +328,11 @@ document.addEventListener("DOMContentLoaded", function () {
         recipeContainer.style.display = "block";
         recipeContainer.innerHTML =
           '<div class="alert alert-danger">Failed to load recipes. Please try again.</div>';
+        // Re-enable the button on error
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          console.log("Button re-enabled after error");
+        }
       });
   });
 

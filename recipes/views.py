@@ -24,6 +24,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
+from django.conf import settings
 
 # Local app imports
 from .models import (
@@ -600,6 +601,9 @@ def generate_recipe_hash(recipe):
 @login_required
 @require_POST
 def save_recipe(request):
+    from django.conf import settings
+    logging.info(f"DEFAULT_FILE_STORAGE: {getattr(settings, 'DEFAULT_FILE_STORAGE', None)}")
+    logging.info(f"MEDIA_URL: {getattr(settings, 'MEDIA_URL', None)}")
     recipe_hash = request.POST.get("recipe_hash")
 
     if not recipe_hash:
