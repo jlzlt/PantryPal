@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.timezone import now
 from django.core.validators import MinValueValidator, MaxValueValidator
+from storages.backends.s3boto3 import S3Boto3Storage
 
 User = AbstractUser
 
@@ -38,7 +39,7 @@ class Recipe(models.Model):
     ingredients = models.JSONField(blank=False, null=False)
     instructions = models.JSONField(blank=False, null=False)
     tags = models.JSONField(blank=True, null=True)
-    image = models.ImageField(upload_to="recipes/", blank=True, null=True)
+    image = models.ImageField(storage=S3Boto3Storage(), upload_to="recipes/", blank=True, null=True)
     hash = models.CharField(max_length=64, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
