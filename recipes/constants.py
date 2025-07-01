@@ -1,8 +1,9 @@
 import json
+import os
 from pathlib import Path
 
 
-GROQ_API_KEY = "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"
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GROQ_URL = "https://api.groq.com/openai/v1"
 GROQ_MODEL = "llama3-70b-8192"
 
