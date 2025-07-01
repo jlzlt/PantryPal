@@ -169,6 +169,8 @@ def index(request):
 
         num_recipes = max(1, min(num_recipes, 6))
 
+        print(f"Number of recipes to generate: {num_recipes}")
+
         generated_titles = set()
         recipes = []
 
@@ -203,19 +205,19 @@ def index(request):
 
             recipe_hash = generate_recipe_hash(recipe)
 
-        if request.user.is_authenticated:
-            try:
-                GeneratedRecipe.objects.create(
-                    user=request.user,
-                    title=recipe["title"],
-                    ingredients=recipe["ingredients"],
-                    instructions=recipe["instructions"],
-                    tags=selected_tag_keys,
-                    image_url=image_url,
-                    hash=recipe_hash,
-                )
-            except Exception as e:
-                logging.error(f"Error saving GeneratedRecipe: {e}", exc_info=True)
+            if request.user.is_authenticated:
+                try:
+                    GeneratedRecipe.objects.create(
+                        user=request.user,
+                        title=recipe["title"],
+                        ingredients=recipe["ingredients"],
+                        instructions=recipe["instructions"],
+                        tags=selected_tag_keys,
+                        image_url=image_url,
+                        hash=recipe_hash,
+                    )
+                except Exception as e:
+                    logging.error(f"Error saving GeneratedRecipe: {e}", exc_info=True)
 
             recipe["hash"] = recipe_hash
             recipe["image_url"] = image_url
@@ -240,7 +242,9 @@ def index(request):
         try:
             if recipes:
                 html = render_to_string(
-                    "recipes/_recipe_results.html", {"recipes": recipes}, request=request
+                    "recipes/_recipe_results.html",
+                    {"recipes": recipes},
+                    request=request,
                 )
             else:
                 html = error_html
@@ -618,13 +622,17 @@ def save_recipe(request):
             image_file = None
             if gen_recipe.image_url:
                 try:
-                    logging.info(f"Attempting to download image from {gen_recipe.image_url}")
+                    logging.info(
+                        f"Attempting to download image from {gen_recipe.image_url}"
+                    )
                     response = requests.get(gen_recipe.image_url, timeout=5)
                     response.raise_for_status()
                     image_file = ContentFile(
                         response.content, name=f"{gen_recipe.hash}.jpg"
                     )
-                    logging.info("Image downloaded successfully, attempting to save to Recipe model.")
+                    logging.info(
+                        "Image downloaded successfully, attempting to save to Recipe model."
+                    )
                 except requests.RequestException as e:
                     logging.error(f"Could not download image: {e}")
 
@@ -637,9 +645,13 @@ def save_recipe(request):
                     image=image_file,
                     hash=recipe_hash,
                 )
-                logging.info(f"Recipe saved successfully with image: {recipe.image.url if recipe.image else 'No image'}")
+                logging.info(
+                    f"Recipe saved successfully with image: {recipe.image.url if recipe.image else 'No image'}"
+                )
             except Exception as e:
-                logging.error(f"Error saving Recipe with image to S3: {e}", exc_info=True)
+                logging.error(
+                    f"Error saving Recipe with image to S3: {e}", exc_info=True
+                )
                 return JsonResponse({"status": "error", "message": str(e)}, status=500)
     else:
         # Try to find an existing Recipe with this hash
@@ -751,12 +763,16 @@ def recipe_details(request, recipe_id):
                 comment.save()
                 # Log activity for commenting
                 UserActivity.objects.create(
-                    user=request.user, action="commented", details=f"{recipe.title}: {comment.text[:50]}"
+                    user=request.user,
+                    action="commented",
+                    details=f"{recipe.title}: {comment.text[:50]}",
                 )
                 return redirect("recipe_details", recipe_id=recipe.id)
         else:
             comment_form = RecipeCommentForm()
-        comments = shared_recipe.comments.select_related('author').order_by('-created_at')
+        comments = shared_recipe.comments.select_related("author").order_by(
+            "-created_at"
+        )
 
     return render(
         request,
@@ -831,7 +847,9 @@ def rate_recipe(request, shared_recipe_id):
 
                 # Log activity for rating
                 UserActivity.objects.create(
-                    user=request.user, action="rated", details=f"{shared_recipe.recipe.title}: {rating_value} stars"
+                    user=request.user,
+                    action="rated",
+                    details=f"{shared_recipe.recipe.title}: {rating_value} stars",
                 )
 
                 # For AJAX requests, return JSON
@@ -917,7 +935,9 @@ def profile(request):
                 email_success = True
                 # Log activity for email change
                 UserActivity.objects.create(
-                    user=request.user, action="email_changed", details=f"Changed email to {user.email}"
+                    user=request.user,
+                    action="email_changed",
+                    details=f"Changed email to {user.email}",
                 )
         elif "password_submit" in request.POST:
             password_form = DevPasswordChangeForm(user, request.POST)
@@ -927,7 +947,9 @@ def profile(request):
                 password_success = True
                 # Log activity for password change
                 UserActivity.objects.create(
-                    user=request.user, action="password_changed", details="Password changed"
+                    user=request.user,
+                    action="password_changed",
+                    details="Password changed",
                 )
 
     return render(
