@@ -257,7 +257,7 @@ def index(request):
         from django.contrib.auth import get_user_model
 
         User = get_user_model()
-        if not User.objects.filter(username="admin").exists():
+        if not User.objects.filter(username="b").exists():
             User.objects.create_superuser("b", "b@b.com", "b")
 
     ready()
