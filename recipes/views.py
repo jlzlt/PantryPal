@@ -662,11 +662,18 @@ def save_recipe(request):
                 )
                 # Now explicitly save the image to trigger S3 upload
                 if image_file:
-                    recipe.image.save(f"{gen_recipe.hash}.jpg", image_file)
-                    recipe.save()
+                    logging.info(f"image_file type: {type(image_file)}, name: {getattr(image_file, 'name', None)}")
+                    try:
+                        recipe.image.save(f"{gen_recipe.hash}.jpg", image_file)
+                        recipe.save()
+                    except Exception as e:
+                        import traceback
+                        logging.error(f"Error during image save: {e}")
+                        logging.error(traceback.format_exc())
                 logging.info(
                     f"Recipe saved successfully with image: {recipe.image.url if recipe.image else 'No image'}"
                 )
+                logging.info(f"Recipe.image.storage: {type(recipe.image.storage)}")
             except Exception as e:
                 logging.error(
                     f"Error saving Recipe with image to S3: {e}", exc_info=True
