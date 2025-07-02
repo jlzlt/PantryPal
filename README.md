@@ -2,6 +2,8 @@
 
 PantryPal is a Django-based web application that allows users to generate AI-powered recipes based on ingredients they already have at home. By combining fast, low-latency responses from large language models via the Groq API and AI-generated images through Pollinations.ai, PantryPal delivers dynamic and personalized recipe suggestions within seconds.
 
+Project is also live on this address (however, it can take up to 1 minute to load at first because website needs to cold start): https://pantrypal-cex0.onrender.com
+
 ![Screenshot](/recipes/static/recipes/screenshot1.png)
 
 ![Screenshot](/recipes/static/recipes/screenshot2.png)
