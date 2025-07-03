@@ -46,6 +46,9 @@ Install required Python packages:
 
 `python manage.py migrate`
 
+Optional:
+Need to set `DEBUG = True` in pantrypal/settings.py to be able to see media pictures.
+
 ### 6.) Run the development server
 
 `python manage.py runserver`
