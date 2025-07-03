@@ -62,3 +62,5 @@ EXAMPLE_RECIPE = {
 }
 
 DEFAULT_IMAGE_URL = "/static/default_recipe_img.png"
+
+WEB_ADDRESS = "http://127.0.0.1:8000"

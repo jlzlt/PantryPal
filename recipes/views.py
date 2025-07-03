@@ -50,6 +50,9 @@ from .forms import RecipeCommentForm
 
 
 def register(request):
+    if request.user.is_authenticated:
+        return redirect(reverse("index"))
+
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
         email = request.POST.get("email", "").strip()
@@ -107,6 +110,9 @@ def register(request):
 
 
 def login_view(request):
+    if request.user.is_authenticated:
+        return redirect(reverse("index"))
+
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
         password = request.POST.get("password", "").strip()

@@ -159,6 +159,12 @@
                   {% elif activity.action == 'unshared' %}
                     <strong>{{ activity.get_action_display }}</strong>
                     <span class="fw-semibold shared-highlight">{{ activity.details }}</span>
+                  {% elif activity.action == 'commented' %}
+                    <strong>{{ activity.get_action_display }}</strong>
+                    <span class="fw-semibold text-success">{{ activity.details }}</span>
+                  {% elif activity.action == 'rated' %}
+                    <strong>{{ activity.get_action_display }}</strong>
+                    <span class="fw-semibold text-success">{{ activity.details }}</span>
                   {% else %}
                     <strong>{{ activity.details }}</strong>
                   {% endif %}

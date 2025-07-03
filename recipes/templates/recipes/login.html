@@ -12,6 +12,7 @@
         <div class="input-group">
           <span class="input-group-text"><i class="bi bi-person"></i></span>
           <input
+            data-testid="input-username"
             autofocus
             class="form-control {% if errors.username %}is-invalid{% endif %}"
             type="text"
@@ -28,6 +29,7 @@
         <div class="input-group">
           <span class="input-group-text"><i class="bi bi-lock"></i></span>
           <input
+            data-testid="input-password"
             class="form-control {% if errors.password %}is-invalid{% endif %}"
             type="password"
             name="password"
@@ -39,7 +41,7 @@
         <div class="invalid-feedback d-block mb-2">{{ errors.password }}</div>
         {% endif %}
       </div>
-      <button class="btn btn-success w-100 mb-2" type="submit">
+      <button data-testid="button-login" class="btn btn-success w-100 mb-2" type="submit">
         Login
         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
       </button>

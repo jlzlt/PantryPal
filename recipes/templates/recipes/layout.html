@@ -91,13 +91,13 @@
           {% if user.is_authenticated %}
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle d-flex align-items-center px-3 py-1 text-dark me-2 rounded-pill" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <a class="nav-link dropdown-toggle d-flex align-items-center px-3 py-1 text-dark me-2 rounded-pill" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-testid="toggle-user-dropdown">
                 <i class="bi bi-person-circle me-1"></i> {{ user.username }}
               </a>
               <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                 <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Profile</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                <li><a class="dropdown-item" href="{% url 'logout' %}" data-testid="button-logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
               </ul>
             </li>
           </ul>
