@@ -719,7 +719,6 @@ def remove_saved_recipe(request):
         )
 
 
-@login_required
 def recipe_details(request, recipe_id):
     recipe = get_object_or_404(Recipe, id=recipe_id)
 
@@ -732,14 +731,21 @@ def recipe_details(request, recipe_id):
     ]
 
     shared_recipe = SharedRecipe.objects.filter(recipe__hash=recipe.hash).first()
-    saved_recipe = SavedRecipe.objects.filter(
-        recipe__hash=recipe.hash, user=request.user
-    ).first()
 
-    # Check if the recipe is shared by the current user
-    is_shared_by_user = SharedRecipe.objects.filter(
-        recipe=recipe, author=request.user
-    ).exists()
+    # Only try to get saved_recipe and is_shared_by_user if user is authenticated
+    saved_recipe = None
+    is_shared_by_user = False
+    user_rating = None
+    if request.user.is_authenticated:
+        saved_recipe = SavedRecipe.objects.filter(
+            recipe__hash=recipe.hash, user=request.user
+        ).first()
+        is_shared_by_user = SharedRecipe.objects.filter(
+            recipe=recipe, author=request.user
+        ).exists()
+    else:
+        saved_recipe = None
+        is_shared_by_user = False
 
     # Check if the recipe is shared by any user
     is_shared_by_anyone = SharedRecipe.objects.filter(recipe=recipe).exists()
@@ -747,7 +753,7 @@ def recipe_details(request, recipe_id):
     # Ratings setup
     average_rating = None
     total_votes = 0
-    user_rating = None
+    # user_rating is already set above
 
     if shared_recipe:
         rating_data = shared_recipe.ratings.aggregate(
@@ -756,10 +762,11 @@ def recipe_details(request, recipe_id):
         average_rating = round(rating_data["avg"], 1) if rating_data["avg"] else None
         total_votes = rating_data["count"] or 0
 
-        # Correctly get current user's rating using 'rater' field
-        user_rating_obj = shared_recipe.ratings.filter(rater=request.user).first()
-        if user_rating_obj:
-            user_rating = user_rating_obj.rating
+        # Only get current user's rating if authenticated
+        if request.user.is_authenticated:
+            user_rating_obj = shared_recipe.ratings.filter(rater=request.user).first()
+            if user_rating_obj:
+                user_rating = user_rating_obj.rating
 
     # --- Comments logic ---
     comment_form = None

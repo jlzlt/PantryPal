@@ -54,6 +54,7 @@
           </div>
         </div>
         <!-- User Rating -->
+        {% if user.is_authenticated %}
         <div class="user-rating-block">
           <div class="star-row">
             <span class="label-align user-rating-label">Your rating:</span>
@@ -71,6 +72,7 @@
           <div id="user-rating-feedback" class="user-rating hidden"></div>
           {% endif %}
         </div>
+        {% endif %}
       </div>
     </div>
     {% endif %}
@@ -104,61 +106,65 @@
     </div>
 
     <div class="button-group">
-      {% if is_shared_by_user %}
-        <form method="POST" action="{% url 'remove_shared_recipe' %}" id="remove-share-form">
+      {% if user.is_authenticated %}
+        {% if is_shared_by_user %}
+          <form method="POST" action="{% url 'remove_shared_recipe' %}" id="remove-share-form">
+            {% csrf_token %}
+            <input type="hidden" name="recipe_id" value="{{ recipe.id }}" />
+            <button type="submit" class="btn remove-btn" id="remove-share-btn">Remove from Shared</button>
+          </form>
+        {% elif not is_shared_by_anyone %}
+          <button class="btn add-btn" id="share-btn">Share</button>
+        {% endif %}
+        {% if saved_recipe %}
+          <!-- Show Remove button if recipe is saved -->
+          <form
+            method="POST"
+            action="{% url 'remove_saved_recipe' %}"
+            class="remove-recipe-form"
+          >
+            {% csrf_token %}
+            <input type="hidden" name="recipe_hash" value="{{ recipe.hash }}" />
+            <button type="submit" class="btn remove-btn" data-saved="true">
+              <span class="button-text">Remove from Saved</span>
+              <span
+                class="spinner-border spinner-border-sm d-none"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            </button>
+          </form>
+        {% else %}
+          <!-- Show Save button if recipe is not saved -->
+          <form
+            method="POST"
+            action="{% url 'save_recipe' %}"
+            class="save-recipe-form"
+          >
+            {% csrf_token %}
+            <input type="hidden" name="recipe_hash" value="{{ recipe.hash }}" />
+            <button type="submit" class="btn add-btn" data-saved="false">
+              <span class="button-text">Save</span>
+              <span
+                class="spinner-border spinner-border-sm d-none"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            </button>
+          </form>
+        {% endif %}
+        <form
+          method="POST"
+          action="{% url 'share_recipe' %}"
+          id="share-form"
+          style="display: none"
+        >
           {% csrf_token %}
           <input type="hidden" name="recipe_id" value="{{ recipe.id }}" />
-          <button type="submit" class="btn remove-btn" id="remove-share-btn">Remove from Shared</button>
-        </form>
-      {% elif not is_shared_by_anyone %}
-        <button class="btn add-btn" id="share-btn">Share</button>
-      {% endif %}
-      {% if saved_recipe %}
-        <!-- Show Remove button if recipe is saved -->
-        <form
-          method="POST"
-          action="{% url 'remove_saved_recipe' %}"
-          class="remove-recipe-form"
-        >
-          {% csrf_token %}
-          <input type="hidden" name="recipe_hash" value="{{ recipe.hash }}" />
-          <button type="submit" class="btn remove-btn" data-saved="true">
-            <span class="button-text">Remove from Saved</span>
-            <span
-              class="spinner-border spinner-border-sm d-none"
-              role="status"
-              aria-hidden="true"
-            ></span>
-          </button>
         </form>
       {% else %}
-        <!-- Show Save button if recipe is not saved -->
-        <form
-          method="POST"
-          action="{% url 'save_recipe' %}"
-          class="save-recipe-form"
-        >
-          {% csrf_token %}
-          <input type="hidden" name="recipe_hash" value="{{ recipe.hash }}" />
-          <button type="submit" class="btn add-btn" data-saved="false">
-            <span class="button-text">Save</span>
-            <span
-              class="spinner-border spinner-border-sm d-none"
-              role="status"
-              aria-hidden="true"
-            ></span>
-          </button>
-        </form>
+        <div class="alert alert-info mt-2">Please <a href="{% url 'login' %}?next={{ request.path }}">log in</a> to save recipes.</div>
       {% endif %}
-      <form
-        method="POST"
-        action="{% url 'share_recipe' %}"
-        id="share-form"
-        style="display: none"
-      >
-        {% csrf_token %}
-        <input type="hidden" name="recipe_id" value="{{ recipe.id }}" />
-      </form>
     </div>
     {% if saved_recipe %}
     <div class="saved-timestamp">
