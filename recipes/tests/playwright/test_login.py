@@ -57,3 +57,34 @@ def test_login_nonexistent_username():
         page.wait_for_selector("text=This username does not exist.")
         assert page.locator("text=This username does not exist.").is_visible()
         browser.close()
+
+def test_login_empty_fields():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(f"{WEB_ADDRESS}/login/")
+
+        # Submit with both fields empty
+        page.fill("[data-testid='input-username']", "")
+        page.fill("[data-testid='input-password']", "")
+        page.click("[data-testid='button-login']")
+        page.wait_for_selector("text=Username is required.")
+        page.wait_for_selector("text=Password is required.")
+        assert page.locator("text=Username is required.").is_visible()
+        assert page.locator("text=Password is required.").is_visible()
+
+        # Submit with only username filled
+        page.fill("[data-testid='input-username']", "a")
+        page.fill("[data-testid='input-password']", "")
+        page.click("[data-testid='button-login']")
+        page.wait_for_selector("text=Password is required.")
+        assert page.locator("text=Password is required.").is_visible()
+
+        # Clear username, fill only password
+        page.fill("[data-testid='input-username']", "")
+        page.fill("[data-testid='input-password']", "a")
+        page.click("[data-testid='button-login']")
+        page.wait_for_selector("text=Username is required.")
+        assert page.locator("text=Username is required.").is_visible()
+
+        browser.close()
