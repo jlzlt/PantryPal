@@ -5,7 +5,7 @@ from pathlib import Path
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GROQ_URL = "https://api.groq.com/openai/v1"
-GROQ_MODEL = "llama3-70b-8192"
+GROQ_MODEL = "llama-3.1-8b-instant"
 
 FILTER_PHRASES = {
     "all_ingredients": "You have to use all ingredients",
