@@ -10,7 +10,7 @@ Project is also live on this address: https://pantrypal-cex0.onrender.com
 
 ## Installation Guide
 
-Follow these steps to set up and run PasswordManager on your local machine:
+Follow these steps to set up and run PantryPal on your local machine:
 
 ### 1.) Prerequisites
 Make sure you have the following installed:
